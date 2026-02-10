@@ -23,11 +23,12 @@ def check_password():
     if st.session_state.password_correct:
         return True
 
+    # تنسيق شاشة القفل (داكنة إجبارياً)
     st.markdown("""
         <style>
-        .stApp { background-color: #0f172a; color: white; }
-        .stTextInput input { text-align: center; direction: ltr; color: white; background-color: #1e293b; border: 1px solid #334155; }
-        h1 {text-align: center; color: white; font-family: sans-serif;}
+        .stApp { background-color: #0f172a !important; color: white !important; }
+        .stTextInput input { text-align: center; color: white !important; background-color: #1e293b !important; border: 1px solid #334155 !important; }
+        h1 {text-align: center; color: white !important; font-family: sans-serif;}
         </style>
         """, unsafe_allow_html=True)
     
@@ -44,19 +45,22 @@ def check_password():
 if not check_password():
     st.stop()
 
-# --- 3. التصميم (CSS) - التحكم بالفراغات والأحجام ---
+# --- 3. التصميم (CSS) - النسخة المحسنة للابتوب ---
 st.markdown("""
     <style>
     /* استيراد خط المراعي */
     @import url('https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap');
 
-    /* 1. إزالة الفراغات الزائدة من الأعلى والأسفل */
-    .block-container {
-        padding-top: 1.5rem !important; /* تقليل الفراغ العلوي */
-        padding-bottom: 2rem !important; /* تقليل الفراغ السفلي */
+    /* 1. الحل الجذري للألوان (تثبيت متغيرات النظام) */
+    :root {
+        --primary-color: #38bdf8;
+        --background-color: #0f172a;
+        --secondary-background-color: #1e293b;
+        --text-color: #ffffff;
+        --font: 'Almarai', sans-serif;
     }
 
-    /* 2. الخلفية والخط الأساسي */
+    /* 2. إجبار الخلفية الداكنة مهما كان الوضع */
     html, body, .stApp {
         background-color: #0f172a !important;
         background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%);
@@ -65,7 +69,7 @@ st.markdown("""
     }
 
     /* 3. تطبيق الخط */
-    h1, h2, h3, h4, h5, h6, p, label, button, input, textarea, .stMarkdown, div {
+    h1, h2, h3, h4, h5, h6, p, label, button, input, textarea, .stMarkdown, div, span {
         font-family: 'Almarai', sans-serif !important;
     }
     
@@ -74,73 +78,69 @@ st.markdown("""
         font-family: sans-serif !important;
     }
 
-    /* 4. إعدادات النصوص والاتجاه */
+    /* 4. محاذاة النصوص (يمين) */
     h2, h3, h4, h5, h6, p, label, .stTextInput > label, .stSelectbox > label {
         text-align: right !important;
         direction: rtl !important;
         color: #ffffff !important;
     }
 
-    /* -------------------------------------------------------- */
-    /* 🔥 الحل السحري لتكبير الخط على اللابتوب فقط 🔥 */
-    /* -------------------------------------------------------- */
-    
-    /* الوضع الافتراضي (للموبايل) - يبقى كما هو */
-    p, label, input, button { font-size: 1rem !important; }
-    
-    /* الوضع الخاص للشاشات الكبيرة (أكبر من 1000px) */
-    @media (min-width: 1000px) {
-        /* تكبير النصوص العامة */
-        p, label, input, div, span {
-            font-size: 1.2rem !important; 
-        }
-        /* تكبير العنوان الرئيسي */
-        h1 {
-            font-size: 4rem !important; 
-        }
-        /* تكبير عناوين الفيديوهات */
-        .streamlit-expanderHeader p {
-            font-size: 1.4rem !important; 
-        }
-        /* تكبير الأزرار */
-        .stButton button {
-            font-size: 1.2rem !important;
-        }
-        /* تكبير اللوغو قليلاً على الشاشات الكبيرة */
-        .center-logo {
-            width: 160px !important;
-        }
-    }
-    /* -------------------------------------------------------- */
-
-    /* 5. تنسيق الحقول (إزالة الخلفيات المزعجة) */
-    .stTextInput input {
-        background-color: rgba(255, 255, 255, 0.05) !important;
+    /* 5. تنسيق الحقول (إجبار اللون الداكن للنصوص والخلفيات) */
+    .stTextInput input, .stTextArea textarea, .stSelectbox div {
+        background-color: #1e293b !important; /* لون كحلي غامق للحقول */
         color: #ffffff !important;
         border: 1px solid rgba(255, 255, 255, 0.2) !important;
         direction: rtl !important;
         text-align: right !important;
     }
     
-    div[data-baseweb="select"] > div {
-        background-color: rgba(255, 255, 255, 0.05) !important;
-        border-color: rgba(255, 255, 255, 0.2) !important;
-        color: white !important;
-        direction: rtl !important;
-    }
+    /* لون النص داخل القوائم */
     div[data-baseweb="select"] span {
         color: #ffffff !important;
     }
 
-    /* --- تنسيق البطاقات --- */
+    /* ============================================================ */
+    /* 🖥️ قسم التكبير الخاص باللابتوب (Desktop Zoom) 🖥️ */
+    /* ============================================================ */
+    
+    @media (min-width: 1000px) {
+        /* تكبير الحاوية الرئيسية */
+        .block-container {
+            max-width: 90% !important; /* استغلال عرض الشاشة */
+            padding-top: 3rem !important;
+        }
+
+        /* تضخيم العناوين */
+        h1 { font-size: 4.5rem !important; margin-bottom: 2rem !important; }
+        
+        /* تضخيم النصوص العادية والتسميات */
+        p, label, .stMarkdown p { font-size: 1.3rem !important; }
+        
+        /* تضخيم حقول الإدخال والأزرار */
+        .stTextInput input, .stButton button, div[data-baseweb="select"] {
+            font-size: 1.2rem !important;
+            height: 3.5rem !important; /* حقول أطول */
+        }
+        
+        /* تضخيم عناوين الفيديوهات في القائمة */
+        .streamlit-expanderHeader p {
+            font-size: 1.5rem !important; 
+        }
+
+        /* تكبير اللوغو للابتوب */
+        .center-logo { width: 180px !important; }
+    }
+    /* ============================================================ */
+
+    /* تنسيق البطاقات (Expander) */
     [data-testid="stExpanderToggleIcon"] { display: none !important; }
     
     .streamlit-expanderHeader {
-        background-color: rgba(30, 41, 59, 0.7) !important;
+        background-color: rgba(30, 41, 59, 0.8) !important;
         border: none !important;
         border-radius: 15px !important;
         padding: 15px 20px !important;
-        margin-bottom: 10px;
+        margin-bottom: 12px;
         display: block !important;
     }
 
@@ -156,33 +156,33 @@ st.markdown("""
     .streamlit-expanderContent {
         background-color: transparent !important;
         border: none !important;
-        padding: 10px 20px !important;
+        padding: 15px 25px !important;
         text-align: right !important;
     }
     
-    hr {
-        border-color: rgba(255, 255, 255, 0.1) !important;
-        margin: 1.5em 0 !important;
-    }
+    hr { border-color: rgba(255, 255, 255, 0.1) !important; margin: 1.5em 0 !important; }
 
     /* أزرار التحميل */
     .dl-link {
-        display: block; width: 100%; padding: 12px; margin: 8px 0;
-        text-align: center; border-radius: 8px; text-decoration: none !important;
+        display: block; width: 100%; padding: 15px; margin: 10px 0;
+        text-align: center; border-radius: 10px; text-decoration: none !important;
         font-weight: 700; color: white !important; border: 1px solid rgba(255,255,255,0.2);
+        font-size: 1.1rem;
     }
     .savefrom-btn { background: linear-gradient(135deg, #10b981, #059669); }
     .cobalt-btn { background: linear-gradient(135deg, #3b82f6, #2563eb); }
     .dl-link:hover { opacity: 0.9; transform: translateY(-2px); }
 
-    /* تنسيق اللوغو */
+    /* اللوغو */
     .center-logo {
         display: block; margin-left: auto; margin-right: auto;
-        width: 130px; height: auto; object-fit: contain;
+        width: 130px; /* حجم الموبايل */
+        height: auto; object-fit: contain;
     }
     
     #MainMenu, footer, header {visibility: hidden;}
-    .stTabs [data-baseweb="tab-list"] { justify-content: center; flex-direction: row-reverse; gap: 10px; }
+    .stTabs [data-baseweb="tab-list"] { justify-content: center; flex-direction: row-reverse; gap: 15px; }
+    .stTabs [data-baseweb="tab"] { font-size: 1.2rem !important; }
     </style>
 """, unsafe_allow_html=True)
 
