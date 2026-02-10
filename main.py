@@ -16,7 +16,7 @@ st.set_page_config(
 
 # --- 2. نظام الحماية (كلمة السر) ---
 # قم بتغيير "12345" إلى كلمة السر التي تريدها
-PASSWORD = "12345"
+PASSWORD = "9988"
 
 def check_password():
     """Returns `True` if the user had the correct password."""
