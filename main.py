@@ -32,22 +32,23 @@ st.markdown("""
     }
     .streamlit-expanderContent { background-color: rgba(0,0,0,0.2); border-radius: 0 0 10px 10px; border-top: none; }
     
-    /* تنسيق أزرار التحميل الخارجية */
-    .dl-btn {
-        display: block;
+    /* أزرار التحميل */
+    .dl-link {
+        display: inline-block;
         width: 100%;
-        padding: 10px;
+        padding: 12px;
         margin: 5px 0;
         text-align: center;
         border-radius: 8px;
-        text-decoration: none;
+        text-decoration: none !important;
         font-weight: bold;
+        color: white !important;
         transition: 0.3s;
     }
-    .btn-y2mate { background-color: #ff0000; color: white !important; }
-    .btn-savefrom { background-color: #00b75a; color: white !important; }
-    .dl-btn:hover { opacity: 0.8; transform: scale(1.02); }
-    
+    .cobalt-btn { background: linear-gradient(45deg, #3b82f6, #8b5cf6); }
+    .ss-btn { background: linear-gradient(45deg, #10b981, #059669); }
+    .dl-link:hover { opacity: 0.9; transform: translateY(-2px); }
+
     #MainMenu, footer, header {visibility: hidden;}
     .stTabs [data-baseweb="tab-list"] { justify-content: center; flex-direction: row-reverse; }
     </style>
@@ -66,14 +67,25 @@ def save_to_disk():
     with open(DB_FILE, "w", encoding="utf-8") as f:
         json.dump(st.session_state.videos, f, ensure_ascii=False, indent=4)
 
-def clean_url(url):
+# دالة ذكية لإصلاح الروابط المختصرة
+def fix_youtube_url(url):
     if not url: return ""
     u = url.strip()
-    if "youtube.com/shorts/" in u: u = u.replace("shorts/", "watch?v=")
-    if "instagram.com" in u: u = u.split("?")[0]
+    # تحويل رابط الشورتس
+    if "youtube.com/shorts/" in u: 
+        u = u.replace("shorts/", "watch?v=")
+    # تحويل الرابط المختصر (youtu.be) إلى الرابط الطويل
+    elif "youtu.be/" in u:
+        vid_id = u.split("youtu.be/")[-1].split("?")[0]
+        u = f"https://www.youtube.com/watch?v={vid_id}"
+    
+    # تنظيف روابط انستغرام
+    if "instagram.com" in u: 
+        u = u.split("?")[0]
+        
     return u
 
-# --- 4. الهيدر واللوغو ---
+# --- 4. الهيدر ---
 @st.cache_data
 def get_img_as_base64(file):
     try:
@@ -105,7 +117,7 @@ with st.expander("➕ إضافة فيديو جديد", expanded=False):
     url_in = st.text_input("رابط الفيديو")
     if st.button("حفظ ✅"):
         if title_in and url_in:
-            final_url = clean_url(url_in)
+            final_url = fix_youtube_url(url_in) # استخدام الدالة المصلحة
             st.session_state.videos.append({"title": title_in, "path": final_url, "category": cat_in, "type": "url", "date": time.strftime("%Y-%m-%d")})
             save_to_disk()
             st.rerun()
@@ -120,31 +132,47 @@ def show_expander_card(item, idx, cat_name):
     if item['type'] == 'local': icon = "📂"
     
     with st.expander(f"{icon} {item['title']}  |  📅 {item['date']}"):
+        # عرض الفيديو
         if "youtube.com" in item['path'] or "youtu.be" in item['path']:
             st.video(item['path'])
         else: st.info(f"رابط خارجي: {item['path']}")
 
-        st.markdown("<p style='color:#38bdf8; font-size:0.9rem; margin-top:10px;'>⬇️ خيارات التحميل السريع:</p>", unsafe_allow_html=True)
+        st.markdown("---")
+        st.markdown("##### ⬇️ خيارات التحميل:")
         
-        # روابط ذكية للمواقع الخارجية
-        # موقع Y2Mate (ممتاز للفيديو والصوت)
-        y2mate_link = f"https://www.y2mate.com/youtube/{item['path'].split('v=')[-1] if 'v=' in item['path'] else ''}"
+        # 1. عرض الرابط للنسخ (أضمن طريقة)
+        st.caption("1️⃣ انسخ الرابط من هنا:")
+        st.code(item['path'], language="text")
         
-        # موقع SaveFrom (سريع جداً)
-        savefrom_link = item['path'].replace("youtube.com", "ssyoutube.com")
+        # 2. الأزرار الخارجية
+        st.caption("2️⃣ ثم اختر موقع للتحميل (اضغط لفتح الموقع):")
         
-        # موقع Cobalt (بدون إعلانات - نظيف)
-        cobalt_link = "https://cobalt.tools"
+        # رابط Cobalt (نظيف)
+        cobalt_url = "https://cobalt.tools"
+        
+        # رابط SSYoutube (مع الرابط المصلح)
+        # نقوم بتحويل www.youtube.com إلى ssyoutube.com مباشرة
+        ss_link = item['path'].replace("www.youtube.com", "ssyoutube.com").replace("youtube.com", "ssyoutube.com")
 
         c1, c2 = st.columns(2)
         
         with c1:
-            st.markdown(f'<a href="{y2mate_link}" target="_blank" class="dl-btn btn-y2mate">🚀 تحميل عبر Y2Mate</a>', unsafe_allow_html=True)
-        
-        with c2:
-            st.markdown(f'<a href="{savefrom_link}" target="_blank" class="dl-btn btn-savefrom">🟢 تحميل عبر SSYoutube</a>', unsafe_allow_html=True)
+            # زر كوبالت - أفضل خيار
+            st.markdown(f"""
+                <a href="{cobalt_url}" target="_blank" class="dl-link cobalt-btn">
+                💎 موقع Cobalt (بدون إعلانات)
+                </a>
+            """, unsafe_allow_html=True)
             
-        st.caption("ملاحظة: سيفتح التحميل في صفحة جديدة جاهزاً.")
+        with c2:
+            # زر SSYoutube - الخيار السريع
+            st.markdown(f"""
+                <a href="{ss_link}" target="_blank" class="dl-link ss-btn">
+                🟢 موقع SSYoutube (سريع)
+                </a>
+            """, unsafe_allow_html=True)
+            
+        st.caption("💡 نصيحة: موقع Cobalt هو الأفضل. افتحه والصق الرابط الذي نسخته.")
 
         st.markdown("---")
         if st.button("حذف الفيديو 🗑️", key=f"del_{unique_key}"):
