@@ -35,7 +35,7 @@ st.markdown("""
     }
     .streamlit-expanderContent { background-color: rgba(0,0,0,0.2); border-radius: 0 0 10px 10px; border-top: none; }
     
-    /* تنسيق أزرار المواقع الجديدة */
+    /* تنسيق الأزرار */
     .dl-link {
         display: block;
         width: 100%;
@@ -48,10 +48,11 @@ st.markdown("""
         color: white !important;
         transition: 0.3s;
         border: 1px solid rgba(255,255,255,0.1);
+        font-size: 0.9rem;
     }
+    .savefrom-btn { background: linear-gradient(45deg, #10b981, #059669); } /* الأخضر الأساسي */
     .publer-btn { background: linear-gradient(45deg, #16a34a, #15803d); } /* أخضر غامق */
-    .x2-btn { background: linear-gradient(45deg, #2563eb, #1d4ed8); } /* أزرق */
-    .ss-btn { background: linear-gradient(45deg, #d97706, #b45309); } /* برتقالي */
+    .cobalt-btn { background: linear-gradient(45deg, #3b82f6, #2563eb); } /* أزرق */
     
     .dl-link:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
 
@@ -73,13 +74,10 @@ def save_to_disk():
     with open(DB_FILE, "w", encoding="utf-8") as f:
         json.dump(st.session_state.videos, f, ensure_ascii=False, indent=4)
 
-# دالة تنظيف الروابط
 def fix_youtube_url(url):
     if not url: return ""
     u = url.strip()
-    # تحويل الشورتس لرابط عادي (مهم جداً للتحميل)
-    if "youtube.com/shorts/" in u: 
-        u = u.replace("shorts/", "watch?v=")
+    if "youtube.com/shorts/" in u: u = u.replace("shorts/", "watch?v=")
     elif "youtu.be/" in u:
         vid_id = u.split("youtu.be/")[-1].split("?")[0]
         u = f"https://www.youtube.com/watch?v={vid_id}"
@@ -143,22 +141,26 @@ def show_expander_card(item, idx, cat_name):
         st.write("##### 1️⃣ انسخ الرابط:")
         st.code(item['path'], language="text")
         
-        # 2. قسم التحميل (أقوى 3 مواقع حالياً)
+        # 2. قسم التحميل
         st.write("##### 2️⃣ اختر موقع التحميل:")
         
+        # تحضير رابط SaveFrom (SSYoutube)
+        # نقوم باستبدال الدومين ليفتح الموقع مباشرة
+        ss_link = item['path'].replace("www.youtube.com", "ssyoutube.com").replace("youtube.com", "ssyoutube.com")
+
         c1, c2, c3 = st.columns(3)
         
         with c1:
-            # موقع Publer (ممتاز للشورتس)
-            st.markdown(f'<a href="https://publer.io/tools/media-downloader" target="_blank" class="dl-link publer-btn">🔥 Publer (للشورتس)</a>', unsafe_allow_html=True)
+            # الخيار الأول: SaveFrom
+            st.markdown(f'<a href="{ss_link}" target="_blank" class="dl-link savefrom-btn">🟢 SaveFrom (صوت/فيديو)</a>', unsafe_allow_html=True)
         with c2:
-            # موقع X2Download (قوي لليوتيوب)
-            st.markdown(f'<a href="https://x2download.com/en102" target="_blank" class="dl-link x2-btn">🚀 X2Download (سريع)</a>', unsafe_allow_html=True)
+            # الخيار الثاني: Publer (للشورتس)
+            st.markdown(f'<a href="https://publer.io/tools/media-downloader" target="_blank" class="dl-link publer-btn">🔥 Publer (للشورتس)</a>', unsafe_allow_html=True)
         with c3:
-            # موقع SSYoutube (الاحتياطي)
-            st.markdown(f'<a href="https://ssyoutube.com/en173" target="_blank" class="dl-link ss-btn">🟢 SSYoutube</a>', unsafe_allow_html=True)
+            # الخيار الثالث: Cobalt (الأنظف)
+            st.markdown(f'<a href="https://cobalt.tools" target="_blank" class="dl-link cobalt-btn">💎 Cobalt (بدون إعلانات)</a>', unsafe_allow_html=True)
 
-        st.caption("💡 نصيحة: إذا كان الفيديو **Shorts** استخدم الزر الأول (Publer) فهو الأقوى.")
+        st.caption("💡 ملاحظة: استخدم **SaveFrom** للفيديوهات العادية، واستخدم **Publer** إذا كان الفيديو **Shorts**.")
 
         st.markdown("---")
         if st.button("حذف الفيديو 🗑️", key=f"del_{unique_key}"):
