@@ -13,42 +13,65 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. التصميم (CSS) - النسخة الأقوى ---
+# --- 2. التصميم (CSS) - النسخة المصححة (بدون تداخل) ---
 st.markdown("""
     <style>
-    /* استيراد الخط من جوجل */
-    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@200;300;400;500;700;800;900&display=swap');
+    /* استيراد الخط */
+    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap');
 
-    /* 1. تطبيق الخط على كل شيء حرفياً (The Nuclear Option) */
-    * {
-        font-family: 'Tajawal', sans-serif !important;
-    }
+    /* تطبيق الخط العام */
+    * { font-family: 'Tajawal', sans-serif !important; }
 
-    /* 2. إجبار اللون الأبيض والخلفية الغامقة */
+    /* الخلفية واللون الأساسي */
     html, body, .stApp {
         background-color: #0f172a !important;
-        color: #ffffff !important;
-    }
-    
-    /* خلفية متدرجة */
-    .stApp {
         background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%);
         background-attachment: fixed;
+        color: #ffffff !important;
     }
 
-    /* 3. تنسيق النصوص والعناوين بدقة */
-    h1, h2, h3, h4, h5, h6, p, div, span, label, button, input, textarea {
-        font-family: 'Tajawal', sans-serif !important;
-        color: #ffffff !important;
-        text-align: right;
+    /* إصلاح محاذاة العناوين والنصوص */
+    h1, h2, h3, h4, h5, h6, p, label {
+        text-align: right !important;
+        color: white !important;
     }
 
-    /* 4. تنسيق حقول الإدخال لتكون واضحة */
-    .stTextInput input, .stSelectbox div, .stSelectbox span {
-        color: #ffffff !important;
+    /* --- إصلاح التداخل في القوائم المنسدلة (Expander) --- */
+    .streamlit-expanderHeader {
+        background-color: rgba(30, 41, 59, 0.8) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 12px;
+        color: white !important;
+        font-weight: 700 !important;
+        direction: rtl !important; /* إجبار الاتجاه من اليمين لليسار */
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
     }
     
-    /* 5. تنسيق اللوغو */
+    /* منع الأيقونة من الركوب فوق النص */
+    .streamlit-expanderHeader p {
+        margin: 0 !important;
+        padding-right: 10px !important; /* مسافة بين النص والأيقونة */
+        font-size: 1.1rem;
+    }
+
+    .streamlit-expanderContent {
+        background-color: rgba(0,0,0,0.3) !important;
+        border: 1px solid rgba(255,255,255,0.05);
+        border-top: none;
+        border-radius: 0 0 12px 12px;
+        text-align: right !important;
+    }
+
+    /* تنسيق حقول الإدخال */
+    .stTextInput input {
+        color: white !important;
+        text-align: right !important;
+        direction: rtl !important;
+    }
+
+    /* تنسيق اللوغو */
     .app-icon {
         width: 110px; height: 110px; 
         object-fit: contain; 
@@ -57,26 +80,9 @@ st.markdown("""
         border: 4px solid #ffffff; 
         box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         display: block; 
-        transition: transform 0.3s;
-    }
-    .app-icon:hover { transform: scale(1.05); }
-
-    /* 6. تنسيق البطاقات (Expander) */
-    .streamlit-expanderHeader {
-        background-color: rgba(30, 41, 59, 0.8) !important;
-        border: 1px solid rgba(255,255,255,0.1) !important;
-        border-radius: 12px;
-        color: white !important;
-        font-weight: 700 !important;
-    }
-    .streamlit-expanderContent {
-        background-color: rgba(0,0,0,0.3) !important;
-        border: 1px solid rgba(255,255,255,0.05);
-        border-top: none;
-        border-radius: 0 0 12px 12px;
     }
 
-    /* 7. زر التحميل (SaveFrom) */
+    /* تنسيق زر التحميل */
     .dl-link {
         display: block;
         width: 100%;
@@ -90,17 +96,18 @@ st.markdown("""
         background: linear-gradient(135deg, #10b981, #047857);
         border: 1px solid rgba(255,255,255,0.2);
         box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-        transition: 0.3s;
     }
-    .dl-link:hover {
-        opacity: 0.95;
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.5);
-    }
-    
-    /* إخفاء عناصر النظام */
+    .dl-link:hover { opacity: 0.95; transform: translateY(-3px); }
+
+    /* إخفاء عناصر النظام المزعجة */
     #MainMenu, footer, header {visibility: hidden;}
-    .stTabs [data-baseweb="tab-list"] { justify-content: center; flex-direction: row-reverse; }
+    
+    /* إصلاح تبويبات التصنيف */
+    .stTabs [data-baseweb="tab-list"] { 
+        justify-content: center; 
+        flex-direction: row-reverse; 
+        gap: 10px;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -172,7 +179,10 @@ def show_expander_card(item, idx, cat_name):
     icon = "🎥"
     if item['type'] == 'local': icon = "📂"
     
-    with st.expander(f"{icon} {item['title']}  |  📅 {item['date']}"):
+    # تحسين عرض العنوان والتاريخ
+    label = f"{item['title']} | 📅 {item['date']}"
+    
+    with st.expander(label):
         if "youtube.com" in item['path'] or "youtu.be" in item['path']:
             st.video(item['path'])
         else: st.info(f"رابط خارجي: {item['path']}")
