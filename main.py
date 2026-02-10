@@ -1,10 +1,9 @@
 import streamlit as st
-import json
 import os
+import json
 import time
 import base64
-import yt_dlp
-import shutil
+import requests # المكتبة الجديدة للاتصال بالسيرفر الوسيط
 from PIL import Image
 
 # --- 1. إعدادات الصفحة ---
@@ -41,10 +40,6 @@ st.markdown("""
 
 # --- 3. إدارة الملفات ---
 DB_FILE = "zain_library.json"
-TEMP_DOWNLOADS = "/tmp/zain_downloads" # مجلد مؤقت آمن
-
-if not os.path.exists(TEMP_DOWNLOADS): os.makedirs(TEMP_DOWNLOADS, exist_ok=True)
-
 if 'videos' not in st.session_state:
     if os.path.exists(DB_FILE):
         try: st.session_state.videos = json.load(open(DB_FILE, "r", encoding="utf-8"))
@@ -62,47 +57,49 @@ def clean_url(url):
     if "instagram.com" in u: u = u.split("?")[0]
     return u
 
-# --- 4. دالة التحميل (حيلة الآيفون iOS) ---
-def download_media(url, format_type):
-    # تنظيف المجلد المؤقت أولاً
-    try:
-        if os.path.exists(TEMP_DOWNLOADS):
-            shutil.rmtree(TEMP_DOWNLOADS)
-        os.makedirs(TEMP_DOWNLOADS, exist_ok=True)
-    except: pass
-
-    # إعدادات yt-dlp للتمويه كجهاز آيفون
-    ydl_opts = {
-        'outtmpl': f'{TEMP_DOWNLOADS}/%(title)s.%(ext)s',
-        'quiet': True,
-        'no_warnings': True,
-        'restrictfilenames': True,
-        'socket_timeout': 30, # عدم الانتظار طويلاً
-        
-        # 🔴 الحيلة هنا: التظاهر بأننا آيفون لتخطي الحظر والتعليق
-        'extractor_args': {'youtube': {'player_client': ['ios']}},
-        
-        'format': 'best', # افتراضي
+# --- 4. دالة التحميل السحرية (Cobalt API) ---
+def download_media_via_api(url, mode):
+    # السيرفر الوسيط (Cobalt)
+    api_url = "https://co.wuk.sh/api/json"
+    
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
     }
 
-    if format_type == 'mp3':
-        ydl_opts['format'] = 'bestaudio/best'
-        ydl_opts['postprocessors'] = [{'key': 'FFmpegExtractAudio','preferredcodec': 'mp3','preferredquality': '192'}]
-    elif format_type == '360':
-        ydl_opts['format'] = 'bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best'
-    elif format_type == '720':
-        ydl_opts['format'] = 'bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best'
-
+    # إعدادات الطلب حسب النوع
+    data = {
+        "url": url,
+        "vQuality": "720" if mode == "video" else "max",
+        "filenamePattern": "basic"
+    }
+    
+    if mode == "audio":
+        data["isAudioOnly"] = True
+        data["aFormat"] = "mp3"
+    
     try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=True)
-            filename = ydl.prepare_filename(info)
-            if format_type == 'mp3':
-                base, _ = os.path.splitext(filename)
-                filename = base + ".mp3"
-            return filename, info.get('title', 'video'), None
+        # 1. إرسال الرابط للسيرفر الوسيط
+        response = requests.post(api_url, json=data, headers=headers)
+        response_data = response.json()
+
+        if "url" not in response_data:
+            return None, "فشل السيرفر في جلب الرابط (قد يكون محمياً أو محظوراً)"
+
+        download_link = response_data["url"]
+        
+        # 2. تحميل الملف الناتج من الرابط المباشر
+        file_response = requests.get(download_link, stream=True)
+        
+        # تحديد الاسم والامتداد
+        ext = "mp3" if mode == "audio" else "mp4"
+        filename = f"downloaded_media.{ext}"
+        
+        # حفظ الملف مؤقتاً في الذاكرة للتحميل
+        return file_response.content, None
+
     except Exception as e:
-        return None, None, str(e)
+        return None, str(e)
 
 # --- 5. الهيدر واللوغو ---
 @st.cache_data
@@ -157,34 +154,25 @@ def show_expander_card(item, idx, cat_name):
         else: st.info(f"رابط خارجي: {item['path']}")
 
         st.markdown("<p style='color:#38bdf8; font-size:0.9rem; margin-top:10px;'>⬇️ تحميل بصيغة:</p>", unsafe_allow_html=True)
-        c1, c2, c3 = st.columns(3)
+        c1, c2 = st.columns(2)
         
         with c1:
             if st.button("🎵 MP3", key=f"btn_mp3_{unique_key}"):
-                with st.spinner("جاري التحضير..."):
-                    fpath, title, err = download_media(item['path'], 'mp3')
-                    if fpath:
-                        with open(fpath, "rb") as file:
-                            st.download_button("💾 حفظ MP3", file, file_name=f"{title}.mp3", mime="audio/mpeg", key=f"dl_mp3_{unique_key}")
-                    else: st.error(f"خطأ: {err}")
+                with st.spinner("جاري الاتصال بالسيرفر السحري..."):
+                    file_content, err = download_media_via_api(item['path'], "audio")
+                    if file_content:
+                        st.download_button("💾 اضغط للحفظ", file_content, file_name=f"{item['title']}.mp3", mime="audio/mpeg", key=f"dl_mp3_{unique_key}")
+                    else:
+                        st.error(f"خطأ: {err}")
         
         with c2:
-            if st.button("📺 360p", key=f"btn_360_{unique_key}"):
-                with st.spinner("جاري التحميل..."):
-                    fpath, title, err = download_media(item['path'], '360')
-                    if fpath:
-                        with open(fpath, "rb") as file:
-                            st.download_button("💾 حفظ 360p", file, file_name=f"{title}.mp4", mime="video/mp4", key=f"dl_360_{unique_key}")
-                    else: st.error(f"خطأ: {err}")
-
-        with c3:
-            if st.button("HD 720p", key=f"btn_720_{unique_key}"):
-                with st.spinner("جاري التحميل..."):
-                    fpath, title, err = download_media(item['path'], '720')
-                    if fpath:
-                        with open(fpath, "rb") as file:
-                            st.download_button("💾 حفظ 720p", file, file_name=f"{title}.mp4", mime="video/mp4", key=f"dl_720_{unique_key}")
-                    else: st.error(f"خطأ: {err}")
+            if st.button("📺 MP4 (Video)", key=f"btn_vid_{unique_key}"):
+                with st.spinner("جاري الاتصال بالسيرفر السحري..."):
+                    file_content, err = download_media_via_api(item['path'], "video")
+                    if file_content:
+                        st.download_button("💾 اضغط للحفظ", file_content, file_name=f"{item['title']}.mp4", mime="video/mp4", key=f"dl_vid_{unique_key}")
+                    else:
+                        st.error(f"خطأ: {err}")
 
         st.markdown("---")
         if st.button("حذف الفيديو 🗑️", key=f"del_{unique_key}"):
