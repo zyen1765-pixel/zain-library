@@ -9,13 +9,13 @@ from st_copy_to_clipboard import st_copy_to_clipboard
 # --- 1. إعدادات الصفحة ---
 st.set_page_config(
     page_title="مكتبة زين",
-    page_icon="🩺", # تم تغيير أيقونة المتصفح لتناسب اللوغو الجديد
+    page_icon="📚",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
 # --- 2. نظام الحماية ---
-PASSWORD = "12345"  # غيّرها لكلمة السر التي تريدها
+PASSWORD = "12345"  # كلمة السر
 
 def check_password():
     if "password_correct" not in st.session_state:
@@ -23,7 +23,6 @@ def check_password():
     if st.session_state.password_correct:
         return True
 
-    # تنسيق شاشة القفل
     st.markdown("""
         <style>
         .stApp { background-color: #0f172a; color: white; font-family: sans-serif; }
@@ -45,12 +44,13 @@ def check_password():
 if not check_password():
     st.stop()
 
-# --- 3. التصميم (CSS) - اللوغو الجديد وتنظيف المستطيلات ---
+# --- 3. التصميم (CSS) - إصلاح الخط واللوغو ---
 st.markdown("""
     <style>
+    /* استيراد خط المراعي (الأولوية القصوى) */
     @import url('https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap');
 
-    /* إجبار الوضع الليلي والخط */
+    /* تطبيق الخط على كل العناصر */
     html, body, .stApp {
         background-color: #0f172a !important;
         background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%);
@@ -59,28 +59,34 @@ st.markdown("""
         font-family: 'Almarai', sans-serif !important;
     }
 
-    /* تلوين النصوص */
-    h1, h2, h3, h4, h5, h6, p, label, div[data-testid="stMarkdownContainer"] p {
+    /* ضمان تطبيق الخط على العناوين والنصوص */
+    h1, h2, h3, h4, h5, h6, p, label, div, span, button, input {
+        font-family: 'Almarai', sans-serif !important;
+    }
+
+    /* تنسيق النصوص */
+    h1, h2, h3, h4, h5, h6, p, label {
         color: #ffffff !important;
     }
 
-    /* تنسيق حقول الإدخال */
+    /* حقول الإدخال */
     .stTextInput input, .stSelectbox div, .stTextArea textarea {
         background-color: rgba(255, 255, 255, 0.1) !important;
         color: #ffffff !important;
         border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        direction: rtl;
     }
     .stSelectbox div[data-baseweb="select"] span {
         color: #ffffff !important;
     }
 
-    /* إخفاء أيقونة السهم */
+    /* إخفاء سهم البطاقات */
     .streamlit-expanderHeader svg { display: none !important; }
 
-    /* --- 5. تنسيق البطاقات (Expander) - التنظيف --- */
+    /* تنسيق البطاقات (نظيف بدون إطار) */
     .streamlit-expanderHeader {
-        background-color: rgba(30, 41, 59, 0.7) !important; /* خلفية شفافة أكثر */
-        border: none !important; /* إزالة الإطار */
+        background-color: rgba(30, 41, 59, 0.6) !important;
+        border: none !important;
         border-radius: 15px !important;
         padding: 15px !important;
         display: block !important;
@@ -93,7 +99,6 @@ st.markdown("""
         text-align: right !important;
         width: 100% !important;
     }
-    /* إزالة الخلفية والإطار من المحتوى الداخلي */
     .streamlit-expanderContent {
         background-color: transparent !important;
         border: none !important;
@@ -101,7 +106,7 @@ st.markdown("""
         text-align: right !important;
     }
     
-    /* تخفيف حدة الفواصل الأفقية */
+    /* الفواصل */
     hr {
         border-color: rgba(255, 255, 255, 0.1) !important;
         margin: 1.5em 0 !important;
@@ -117,14 +122,14 @@ st.markdown("""
     .cobalt-btn { background: linear-gradient(135deg, #3b82f6, #2563eb); }
     .dl-link:hover { opacity: 0.9; transform: translateY(-2px); }
 
-    /* --- تنسيق اللوغو الجديد --- */
-    .app-icon {
-        width: 120px; /* حجم صغير ومناسب */
+    /* تنسيق صورة اللوغو ليكون في المنتصف */
+    .center-logo {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: 130px; /* حجم اللوغو */
         height: auto;
         object-fit: contain;
-        /* تمت إزالة الخلفية والإطار والظل */
-        display: block;
-        margin: 0 auto 20px auto; /* توسيط اللوغو ومسافة تحته */
     }
     
     #MainMenu, footer, header {visibility: hidden;}
@@ -132,9 +137,8 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 4. الدوال المساعدة ---
+# --- 4. إدارة الملفات ---
 DB_FILE = "zain_library.json"
-
 if 'videos' not in st.session_state:
     if os.path.exists(DB_FILE):
         try: st.session_state.videos = json.load(open(DB_FILE, "r", encoding="utf-8"))
@@ -146,7 +150,6 @@ def save_to_disk():
         json.dump(st.session_state.videos, f, ensure_ascii=False, indent=4)
 
 def fix_youtube_url(url):
-    """تحويل روابط الشورتس والروابط المختصرة لتعمل في المشغل والتحميل"""
     if not url: return ""
     u = url.strip()
     if "youtube.com/shorts/" in u:
@@ -168,7 +171,7 @@ def get_youtube_title(url):
     except: pass
     return None
 
-# --- 5. الهيدر (اللوغو والعنوان في المنتصف) ---
+# --- 5. الهيدر (اللوغو في المنتصف) ---
 @st.cache_data
 def get_img_as_base64(file):
     try:
@@ -176,15 +179,18 @@ def get_img_as_base64(file):
         return base64.b64encode(data).decode()
     except: return None
 
-logo_path = "zain_logo.png"
-if os.path.exists(logo_path):
-    img_b64 = get_img_as_base64(logo_path)
-    # تم استخدام HTML عادي بدلاً من الأعمدة لتوسيط كل شيء
+# هنا نتأكد من وجود اللوغو (سواء كان png أو jpg)
+logo_file = None
+if os.path.exists("zain_logo.png"): logo_file = "zain_logo.png"
+elif os.path.exists("zain_logo.jpg"): logo_file = "zain_logo.jpg"
+
+if logo_file:
+    img_b64 = get_img_as_base64(logo_file)
     st.markdown(f"""
         <div style="text-align: center; padding-top: 20px;">
-            <img src="data:image/png;base64,{img_b64}" class="app-icon">
-            <h1 style="margin: 0; font-size: 3rem; color: white; text-shadow: 0 0 20px rgba(56, 189, 248, 0.5);">مكتبة زين</h1>
-            <p style="opacity: 0.9; font-size: 1.2rem; color: #e2e8f0; margin: 10px 0 30px 0; font-weight: 300;">مساحتك الخاصة للإبداع</p>
+            <img src="data:image/png;base64,{img_b64}" class="center-logo">
+            <h1 style="margin-top: 15px; font-size: 3rem; color: white; text-shadow: 0 0 20px rgba(56, 189, 248, 0.5);">مكتبة زين</h1>
+            <p style="opacity: 0.9; font-size: 1.2rem; color: #e2e8f0; margin: 5px 0 30px 0; font-weight: 300;">مساحتك الخاصة للإبداع</p>
         </div>
     """, unsafe_allow_html=True)
 else:
