@@ -13,52 +13,54 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. التصميم (CSS) - إخفاء السهم نهائياً ---
+# --- 2. التصميم (CSS) - النسخة النظيفة (Fix Icons) ---
 st.markdown("""
     <style>
     /* استيراد خط المراعي */
     @import url('https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap');
 
-    /* تطبيق الخط العام */
+    /* 1. تطبيق الخط بشكل ذكي (Cascading) */
     html, body, .stApp {
+        font-family: 'Almarai', sans-serif; /* الخط الافتراضي */
         background-color: #0f172a !important;
         background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%);
         background-attachment: fixed;
         color: #ffffff !important;
     }
 
-    /* استهداف النصوص */
-    h1, h2, h3, h4, h5, h6, p, div, span, label, button, input {
+    /* 2. استهداف النصوص فقط (تجنب الأيقونات) */
+    h1, h2, h3, h4, h5, h6, p, label, button, input, textarea {
         font-family: 'Almarai', sans-serif !important;
+        text-align: right;
     }
 
-    /* محاذاة عامة لليمين */
-    h1, h2, h3, h4, h5, h6, p, label {
-        text-align: right !important;
+    /* 3. إخفاء أيقونة السهم في البطاقات (Expander) */
+    /* نخفي الـ SVG والـ Span الذي قد يحتوي على الأيقونة */
+    .streamlit-expanderHeader svg, 
+    .streamlit-expanderHeader [data-testid="stExpanderToggleIcon"] {
+        display: none !important;
     }
 
-    /* --- تنسيق البطاقات (Expander) --- */
+    /* 4. تنسيق رأس البطاقة */
     .streamlit-expanderHeader {
         background-color: rgba(30, 41, 59, 0.8) !important;
         border: 1px solid rgba(255,255,255,0.1) !important;
         border-radius: 12px;
         color: white !important;
-        direction: rtl !important;
         padding: 15px !important;
+        
+        /* جعل العنوان يأخذ كل المساحة */
+        display: block !important; 
     }
 
-    /* 🚫 حذف السهم نهائياً (الحل الجذري) 🚫 */
-    .streamlit-expanderHeader svg {
-        display: none !important;
-    }
-
-    /* تنسيق النص داخل العنوان */
+    /* تنسيق نص العنوان */
     .streamlit-expanderHeader p {
         font-size: 1.1rem !important;
         font-weight: 700 !important;
         margin: 0 !important;
         text-align: right !important;
         width: 100% !important;
+        display: block !important;
     }
 
     /* المحتوى الداخلي */
@@ -74,6 +76,12 @@ st.markdown("""
         color: white !important;
         text-align: right !important;
         direction: rtl !important;
+    }
+    
+    /* تنسيق القوائم المنسدلة */
+    .stSelectbox div[data-baseweb="select"] {
+        direction: rtl !important;
+        text-align: right !important;
     }
 
     /* تنسيق اللوغو */
