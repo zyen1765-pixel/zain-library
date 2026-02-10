@@ -13,14 +13,15 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. التصميم (CSS) - النسخة المحسنة للألوان ---
+# --- 2. التصميم (CSS) - خط جديد وألوان ثابتة ---
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap');
+    /* استيراد خط "تجوال" العصري */
+    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap');
     
-    /* 1. إجبار الخط الأبيض والخلفية الغامقة على جميع الأجهزة */
+    /* تطبيق الخط الجديد وإجبار اللون الأبيض */
     html, body, [class*="css"], .stApp { 
-        font-family: 'Cairo', sans-serif !important; 
+        font-family: 'Tajawal', sans-serif !important; 
         color: #ffffff !important; 
     }
     
@@ -35,58 +36,70 @@ st.markdown("""
         background-attachment: fixed; 
     }
     
-    /* إصلاح لون النصوص داخل العناوين والفقرات */
-    h1, h2, h3, h4, h5, h6, p, label, div, span { 
+    /* تحسين شكل العناوين بالخط الجديد */
+    h1 { 
+        font-weight: 900 !important; 
+        color: white !important; 
+        letter-spacing: -1px; /* جعل الحروف متراصة بشكل جمالي */
+    }
+    
+    h2, h3, h4, h5, h6, p, label, div, span { 
         color: white !important; 
         text-align: right; 
     }
     
-    /* إصلاح لون الكتابة داخل مربعات الإدخال */
     .stTextInput input, .stSelectbox div {
         color: white !important;
     }
 
-    /* 2. تنسيق اللوغو */
+    /* تنسيق اللوغو */
     .app-icon {
-        width: 100px; height: 100px; object-fit: contain; background-color: white;
-        border-radius: 20px; border: 3px solid #ffffff; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        width: 110px; height: 110px; object-fit: contain; background-color: white;
+        border-radius: 25px; border: 4px solid #ffffff; 
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5); /* ظل أقوى */
         display: block; 
+        transition: transform 0.3s;
     }
+    .app-icon:hover { transform: scale(1.05); }
     
-    /* 3. تنسيق البطاقات */
+    /* تنسيق البطاقات */
     .streamlit-expanderHeader {
-        background-color: rgba(30, 41, 59, 0.7); 
+        background-color: rgba(30, 41, 59, 0.8); 
         border: 1px solid rgba(255,255,255,0.1); 
-        border-radius: 10px;
+        border-radius: 12px;
         color: white !important; 
         direction: rtl;
+        font-weight: 700 !important; /* خط عريض */
     }
     .streamlit-expanderContent { 
-        background-color: rgba(0,0,0,0.2); 
-        border-radius: 0 0 10px 10px; 
+        background-color: rgba(0,0,0,0.3); 
+        border-radius: 0 0 12px 12px; 
         border-top: none; 
     }
     
-    /* 4. تنسيق أزرار التحميل */
+    /* زر SaveFrom الوحيد والأنيق */
     .dl-link {
         display: block;
         width: 100%;
-        padding: 12px;
-        margin: 5px 0;
+        padding: 14px;
+        margin: 8px 0;
         text-align: center;
-        border-radius: 8px;
+        border-radius: 10px;
         text-decoration: none !important;
-        font-weight: bold;
+        font-weight: 800; /* خط سميك */
         color: white !important;
         transition: 0.3s;
-        border: 1px solid rgba(255,255,255,0.1);
-        font-size: 0.9rem;
+        border: 1px solid rgba(255,255,255,0.2);
+        font-size: 1rem;
+        background: linear-gradient(135deg, #10b981, #047857); /* تدرج أخضر فخم */
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
     }
-    .savefrom-btn { background: linear-gradient(45deg, #10b981, #059669); } 
-    .snapsave-btn { background: linear-gradient(45deg, #0ea5e9, #0284c7); } 
-    .y2mate-btn { background: linear-gradient(45deg, #ef4444, #b91c1c); } 
     
-    .dl-link:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+    .dl-link:hover { 
+        opacity: 0.95; 
+        transform: translateY(-3px); 
+        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.5); 
+    }
 
     #MainMenu, footer, header {visibility: hidden;}
     .stTabs [data-baseweb="tab-list"] { justify-content: center; flex-direction: row-reverse; }
@@ -131,9 +144,9 @@ if os.path.exists(logo_path):
         st.markdown(f'<img src="data:image/png;base64,{img_b64}" class="app-icon">', unsafe_allow_html=True)
     with col_title:
         st.markdown("""
-            <div style="text-align: right; padding-top: 10px;">
-                <h1 style="margin: 0; font-size: 3rem; color: white;">مكتبة زين</h1>
-                <p style="opacity: 0.8; font-size: 1.1rem; color: #ccc; margin: 0;">مساحتك الخاصة للإبداع</p>
+            <div style="text-align: right; padding-top: 15px;">
+                <h1 style="margin: 0; font-size: 3.5rem; color: white; text-shadow: 0 0 20px rgba(56, 189, 248, 0.5);">مكتبة زين</h1>
+                <p style="opacity: 0.9; font-size: 1.2rem; color: #e2e8f0; margin: 0; font-weight: 300;">مساحتك الخاصة للإبداع</p>
             </div>
         """, unsafe_allow_html=True)
 else:
@@ -170,21 +183,15 @@ def show_expander_card(item, idx, cat_name):
         
         # 1. نسخ الرابط
         st.write("##### 1️⃣ انسخ الرابط:")
-        st_copy_to_clipboard(item['path'], "📋 اضغط هنا للنسخ", key=f"copy_{unique_key}")
+        st_copy_to_clipboard(item['path'], "📋 اضغط للنسخ", key=f"copy_{unique_key}")
         
-        # 2. أزرار المواقع
-        st.write("##### 2️⃣ اختر موقع التحميل:")
+        # 2. زر التحميل الوحيد (الموثوق)
+        st.write("##### 2️⃣ التحميل:")
         
-        c1, c2, c3 = st.columns(3)
+        # رابط SaveFrom
+        st.markdown(f'<a href="https://en.savefrom.net/" target="_blank" class="dl-link">🚀 الذهاب لصفحة التحميل (SaveFrom)</a>', unsafe_allow_html=True)
         
-        with c1:
-            st.markdown(f'<a href="https://en.savefrom.net/" target="_blank" class="dl-link savefrom-btn">🟢 SaveFrom (فيديوهات)</a>', unsafe_allow_html=True)
-        with c2:
-            st.markdown(f'<a href="https://snapsave.io/en" target="_blank" class="dl-link snapsave-btn">🔵 SnapSave (للشورتس)</a>', unsafe_allow_html=True)
-        with c3:
-            st.markdown(f'<a href="https://www.y2mate.com/en/youtube-shorts-downloader" target="_blank" class="dl-link y2mate-btn">🔴 Y2Mate (احتياطي)</a>', unsafe_allow_html=True)
-
-        st.caption("💡 نصيحة: للشورتس استخدم الزر الأزرق (SnapSave).")
+        st.caption("💡 هذا الموقع هو الأفضل حالياً. انسخ الرابط وألصقه هناك.")
 
         st.markdown("---")
         if st.button("حذف الفيديو 🗑️", key=f"del_{unique_key}"):
