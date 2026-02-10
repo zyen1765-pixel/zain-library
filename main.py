@@ -13,15 +13,15 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. التصميم (CSS) - النسخة المصححة للتداخل ---
+# --- 2. التصميم (CSS) - النسخة المصححة للأيقونات ---
 st.markdown("""
     <style>
-    /* استيراد الخط */
+    /* استيراد خط تجوال */
     @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap');
 
-    /* تطبيق الخط العام */
-    * { 
-        font-family: 'Tajawal', sans-serif !important; 
+    /* تطبيق الخط على النصوص فقط (وليس الأيقونات) */
+    html, body, [class*="css"], .stApp, p, h1, h2, h3, h4, h5, h6, label, div, span, button, input {
+        font-family: 'Tajawal', sans-serif !important;
     }
 
     /* الخلفية واللون الأساسي */
@@ -36,32 +36,37 @@ st.markdown("""
     h1, h2, h3, h4, h5, h6, p, label {
         text-align: right !important;
         color: white !important;
-        line-height: 1.6 !important; /* تحسين تباعد الأسطر لمنع التداخل */
     }
 
-    /* --- إصلاح التداخل في العناوين (Expander) --- */
-    /* استهداف الحاوية الرئيسية للعنوان */
+    /* --- إصلاح البطاقات (Expander) بشكل جذري --- */
     .streamlit-expanderHeader {
         background-color: rgba(30, 41, 59, 0.8) !important;
         border: 1px solid rgba(255,255,255,0.1) !important;
         border-radius: 12px;
         color: white !important;
-        direction: rtl !important;
+        
+        /* الترتيب السحري: فليكس عكسي */
+        display: flex !important;
+        flex-direction: row-reverse !important; /* النص يمين، السهم يسار */
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 15px !important;
     }
 
-    /* استهداف النص داخل العنوان بدقة */
-    .streamlit-expanderHeader p, .streamlit-expanderHeader span {
+    /* إصلاح النص داخل العنوان */
+    .streamlit-expanderHeader p {
         font-size: 1.1rem !important;
         font-weight: 700 !important;
         margin: 0 !important;
-        padding-right: 35px !important; /* مسافة أمان كبيرة لعدم لمس السهم */
-        padding-left: 10px !important;
-        line-height: 1.8 !important; /* تباعد مريح */
+        color: white !important;
+        flex-grow: 1 !important; /* يأخذ المساحة المتبقية */
     }
     
-    /* أيقونة السهم في الـ Expander */
+    /* إصلاح أيقونة السهم لكي لا تتأثر بالخط */
     .streamlit-expanderHeader svg {
-        margin-left: 10px !important; /* إبعاد السهم قليلاً */
+        margin-right: 10px !important;
+        color: #38bdf8 !important; /* لون سماوي للسهم */
+        transform: scale(1.2);
     }
 
     /* المحتوى الداخلي للبطاقة */
