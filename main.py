@@ -10,19 +10,76 @@ from PIL import Image
 # --- 1. إعدادات الصفحة ---
 st.set_page_config(
     page_title="مكتبة زين",
-    page_icon="💎", 
+    page_icon="💎",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. دوال تحسين السرعة ---
+# --- 2. كود المحقق (Debug) لكشف الملفات ---
+# هذا الجزء سيظهر لك قائمة الملفات في أعلى الموقع لنعرف اسم اللوغو الصحيح
+st.sidebar.warning("⚠️ وضع التصحيح (Debug Mode)")
+files_on_server = os.listdir('.')
+st.sidebar.write("الملفات الموجودة على السيرفر:", files_on_server)
+
+# --- 3. البحث عن اللوغو بذكاء ---
+# سنبحث عن أي صورة تحتوي على كلمة zain أو logo بغض النظر عن حالة الأحرف
+found_logo = None
+for f in files_on_server:
+    if "zain" in f.lower() or "logo" in f.lower():
+        if f.endswith(('.png', '.jpg', '.jpeg')):
+            found_logo = f
+            break
+
+# --- 4. دوال مساعدة ---
 @st.cache_data
 def get_img_as_base64(file):
-    with open(file, "rb") as f:
-        data = f.read()
-    return base64.b64encode(data).decode()
+    try:
+        with open(file, "rb") as f:
+            data = f.read()
+        return base64.b64encode(data).decode()
+    except: return None
 
-# --- 3. التصميم (CSS) ---
+# --- 5. دالة التحميل (بإعدادات أندرويد لتجاوز الحظر) ---
+def download_media(url, format_type):
+    # استخدام مجلد مؤقت
+    temp_dir = "/tmp/zain_downloads"
+    if os.path.exists(temp_dir):
+        try: shutil.rmtree(temp_dir)
+        except: pass
+    os.makedirs(temp_dir, exist_ok=True)
+
+    # إعدادات قوية جداً لتجاوز حظر السيرفرات
+    ydl_opts = {
+        'outtmpl': f'{temp_dir}/%(title)s.%(ext)s',
+        'quiet': True,
+        'no_warnings': True,
+        'restrictfilenames': True,
+        'socket_timeout': 30,
+        # 🔴 الحيلة الجديدة: الظهور كمتصفح أندرويد
+        'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
+        'user_agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36',
+    }
+
+    if format_type == 'mp3':
+        ydl_opts['format'] = 'bestaudio/best'
+        ydl_opts['postprocessors'] = [{'key': 'FFmpegExtractAudio','preferredcodec': 'mp3','preferredquality': '192'}]
+    elif format_type == '360':
+        ydl_opts['format'] = 'bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best'
+    elif format_type == '720':
+        ydl_opts['format'] = 'bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best'
+
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=True)
+            filename = ydl.prepare_filename(info)
+            if format_type == 'mp3':
+                base, _ = os.path.splitext(filename)
+                filename = base + ".mp3"
+            return filename, info.get('title', 'video'), None # None يعني لا يوجد خطأ
+    except Exception as e:
+        return None, None, str(e) # إرجاع نص الخطأ
+
+# --- 6. التصميم (CSS) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap');
@@ -46,13 +103,25 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 4. إدارة البيانات ---
+# --- 7. الهيدر (مع اللوغو المكتشف) ---
+if found_logo:
+    img_b64 = get_img_as_base64(found_logo)
+    col_logo, col_space, col_title = st.columns([0.2, 0.1, 0.7])
+    with col_logo:
+        st.markdown(f'<img src="data:image/png;base64,{img_b64}" class="app-icon">', unsafe_allow_html=True)
+    with col_title:
+        st.markdown("""
+            <div style="text-align: right; padding-top: 10px;">
+                <h1 style="margin: 0; font-size: 3rem; color: white;">مكتبة زين</h1>
+                <p style="opacity: 0.8; font-size: 1.1rem; color: #ccc; margin: 0;">مساحتك الخاصة للإبداع</p>
+            </div>
+        """, unsafe_allow_html=True)
+else:
+    st.markdown("<h1 style='text-align:center;'>مكتبة زين</h1>", unsafe_allow_html=True)
+    st.error("❌ لم يتم العثور على اللوغو! انظر للقائمة الجانبية لترى أسماء الملفات.")
+
+# --- 8. إدارة البيانات ---
 DB_FILE = "zain_library.json"
-# استخدام مجلد مؤقت آمن في السيرفر
-TEMP_DOWNLOADS = "/tmp/zain_downloads"
-
-if not os.path.exists(TEMP_DOWNLOADS): os.makedirs(TEMP_DOWNLOADS)
-
 if 'videos' not in st.session_state:
     if os.path.exists(DB_FILE):
         try: st.session_state.videos = json.load(open(DB_FILE, "r", encoding="utf-8"))
@@ -70,65 +139,7 @@ def clean_url(url):
     if "instagram.com" in u: u = u.split("?")[0]
     return u
 
-# --- 5. دالة التحميل المعدلة (Fix Downloads) ---
-def download_media(url, format_type):
-    # مسح الملفات القديمة لتوفير المساحة
-    try:
-        if os.path.exists(TEMP_DOWNLOADS):
-            shutil.rmtree(TEMP_DOWNLOADS)
-        os.makedirs(TEMP_DOWNLOADS)
-    except: pass
-
-    # خيارات قوية لتجاوز الحظر
-    ydl_opts = {
-        'outtmpl': f'{TEMP_DOWNLOADS}/%(title)s.%(ext)s',
-        'quiet': True,
-        'no_warnings': True,
-        'restrictfilenames': True,
-        'socket_timeout': 60, # زيادة وقت الانتظار
-        'force_ipv4': True,   # مهم جداً للسيرفرات
-        'noplaylist': True,
-        'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-    }
-
-    if format_type == 'mp3':
-        ydl_opts['format'] = 'bestaudio/best'
-        ydl_opts['postprocessors'] = [{'key': 'FFmpegExtractAudio','preferredcodec': 'mp3','preferredquality': '192'}]
-    elif format_type == '360':
-        ydl_opts['format'] = 'bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best'
-    elif format_type == '720':
-        ydl_opts['format'] = 'bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best'
-
-    try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=True)
-            filename = ydl.prepare_filename(info)
-            if format_type == 'mp3':
-                base, _ = os.path.splitext(filename)
-                filename = base + ".mp3"
-            return filename, info.get('title', 'video')
-    except Exception as e:
-        # إرجاع رسالة الخطأ لمعرفتها
-        return None, str(e)
-
-# --- 6. الهيدر ---
-logo_path = "zain_logo.png" # تأكد من وجود الملف في GitHub بنفس الاسم
-if os.path.exists(logo_path):
-    img_b64 = get_img_as_base64(logo_path)
-    col_logo, col_space, col_title = st.columns([0.2, 0.1, 0.7])
-    with col_logo:
-        st.markdown(f'<img src="data:image/png;base64,{img_b64}" class="app-icon">', unsafe_allow_html=True)
-    with col_title:
-        st.markdown("""
-            <div style="text-align: right; padding-top: 10px;">
-                <h1 style="margin: 0; font-size: 3rem; color: white;">مكتبة زين</h1>
-                <p style="opacity: 0.8; font-size: 1.1rem; color: #ccc; margin: 0;">مساحتك الخاصة للإبداع</p>
-            </div>
-        """, unsafe_allow_html=True)
-else:
-    st.markdown("<h1 style='text-align:center;'>مكتبة زين</h1>", unsafe_allow_html=True)
-
-# --- 7. الواجهة ---
+# --- 9. الواجهة ---
 with st.expander("➕ إضافة فيديو جديد", expanded=False):
     c1, c2 = st.columns([1, 1])
     with c2: title_in = st.text_input("العنوان")
@@ -158,32 +169,33 @@ def show_expander_card(item, idx, cat_name):
         st.markdown("<p style='color:#38bdf8; font-size:0.9rem; margin-top:10px;'>⬇️ تحميل بصيغة:</p>", unsafe_allow_html=True)
         c1, c2, c3 = st.columns(3)
         
+        # أزرار التحميل مع كشف الخطأ
         with c1:
             if st.button("🎵 MP3", key=f"btn_mp3_{unique_key}"):
-                with st.spinner("جاري التحويل... قد يستغرق وقتاً"):
-                    fpath, title = download_media(item['path'], 'mp3')
+                with st.spinner("جاري التحويل..."):
+                    fpath, title, err = download_media(item['path'], 'mp3')
                     if fpath:
                         with open(fpath, "rb") as file:
                             st.download_button("💾 حفظ", file, file_name=f"{title}.mp3", mime="audio/mpeg", key=f"dl_mp3_{unique_key}")
-                    else: st.error(f"خطأ: {title}") # سيظهر سبب الخطأ هنا
+                    else: st.error(f"فشل التحميل: {err}") 
         
         with c2:
             if st.button("📺 360p", key=f"btn_360_{unique_key}"):
                 with st.spinner("جاري التحميل..."):
-                    fpath, title = download_media(item['path'], '360')
+                    fpath, title, err = download_media(item['path'], '360')
                     if fpath:
                         with open(fpath, "rb") as file:
                             st.download_button("💾 حفظ", file, file_name=f"{title}_360.mp4", mime="video/mp4", key=f"dl_360_{unique_key}")
-                    else: st.error(f"خطأ: {title}")
+                    else: st.error(f"فشل التحميل: {err}")
 
         with c3:
             if st.button("HD 720p", key=f"btn_720_{unique_key}"):
                 with st.spinner("جاري التحميل..."):
-                    fpath, title = download_media(item['path'], '720')
+                    fpath, title, err = download_media(item['path'], '720')
                     if fpath:
                         with open(fpath, "rb") as file:
                             st.download_button("💾 حفظ", file, file_name=f"{title}_720.mp4", mime="video/mp4", key=f"dl_720_{unique_key}")
-                    else: st.error(f"خطأ: {title}")
+                    else: st.error(f"فشل التحميل: {err}")
 
         st.markdown("---")
         if st.button("حذف الفيديو 🗑️", key=f"del_{unique_key}"):
