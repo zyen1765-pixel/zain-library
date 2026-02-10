@@ -13,71 +13,70 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. التصميم (CSS) - خط جديد وألوان ثابتة ---
+# --- 2. التصميم (CSS) - النسخة الأقوى ---
 st.markdown("""
     <style>
-    /* استيراد خط "تجوال" العصري */
-    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap');
-    
-    /* تطبيق الخط الجديد وإجبار اللون الأبيض */
-    html, body, [class*="css"], .stApp { 
-        font-family: 'Tajawal', sans-serif !important; 
-        color: #ffffff !important; 
-    }
-    
-    :root { 
-        --bg-dark: #0f172a; 
-        --primary: #38bdf8; 
-    }
-    
-    .stApp { 
-        background-color: var(--bg-dark) !important; 
-        background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%); 
-        background-attachment: fixed; 
-    }
-    
-    /* تحسين شكل العناوين بالخط الجديد */
-    h1 { 
-        font-weight: 900 !important; 
-        color: white !important; 
-        letter-spacing: -1px; /* جعل الحروف متراصة بشكل جمالي */
-    }
-    
-    h2, h3, h4, h5, h6, p, label, div, span { 
-        color: white !important; 
-        text-align: right; 
-    }
-    
-    .stTextInput input, .stSelectbox div {
-        color: white !important;
+    /* استيراد الخط من جوجل */
+    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@200;300;400;500;700;800;900&display=swap');
+
+    /* 1. تطبيق الخط على كل شيء حرفياً (The Nuclear Option) */
+    * {
+        font-family: 'Tajawal', sans-serif !important;
     }
 
-    /* تنسيق اللوغو */
+    /* 2. إجبار اللون الأبيض والخلفية الغامقة */
+    html, body, .stApp {
+        background-color: #0f172a !important;
+        color: #ffffff !important;
+    }
+    
+    /* خلفية متدرجة */
+    .stApp {
+        background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%);
+        background-attachment: fixed;
+    }
+
+    /* 3. تنسيق النصوص والعناوين بدقة */
+    h1, h2, h3, h4, h5, h6, p, div, span, label, button, input, textarea {
+        font-family: 'Tajawal', sans-serif !important;
+        color: #ffffff !important;
+        text-align: right;
+    }
+
+    /* 4. تنسيق حقول الإدخال لتكون واضحة */
+    .stTextInput input, .stSelectbox div, .stSelectbox span {
+        color: #ffffff !important;
+    }
+    
+    /* 5. تنسيق اللوغو */
     .app-icon {
-        width: 110px; height: 110px; object-fit: contain; background-color: white;
-        border-radius: 25px; border: 4px solid #ffffff; 
-        box-shadow: 0 10px 25px rgba(0,0,0,0.5); /* ظل أقوى */
+        width: 110px; height: 110px; 
+        object-fit: contain; 
+        background-color: white;
+        border-radius: 25px; 
+        border: 4px solid #ffffff; 
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         display: block; 
         transition: transform 0.3s;
     }
     .app-icon:hover { transform: scale(1.05); }
-    
-    /* تنسيق البطاقات */
+
+    /* 6. تنسيق البطاقات (Expander) */
     .streamlit-expanderHeader {
-        background-color: rgba(30, 41, 59, 0.8); 
-        border: 1px solid rgba(255,255,255,0.1); 
+        background-color: rgba(30, 41, 59, 0.8) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
         border-radius: 12px;
-        color: white !important; 
-        direction: rtl;
-        font-weight: 700 !important; /* خط عريض */
+        color: white !important;
+        font-weight: 700 !important;
     }
-    .streamlit-expanderContent { 
-        background-color: rgba(0,0,0,0.3); 
-        border-radius: 0 0 12px 12px; 
-        border-top: none; 
+    .streamlit-expanderContent {
+        background-color: rgba(0,0,0,0.3) !important;
+        border: 1px solid rgba(255,255,255,0.05);
+        border-top: none;
+        border-radius: 0 0 12px 12px;
     }
-    
-    /* زر SaveFrom الوحيد والأنيق */
+
+    /* 7. زر التحميل (SaveFrom) */
     .dl-link {
         display: block;
         width: 100%;
@@ -86,21 +85,20 @@ st.markdown("""
         text-align: center;
         border-radius: 10px;
         text-decoration: none !important;
-        font-weight: 800; /* خط سميك */
+        font-weight: 800;
         color: white !important;
-        transition: 0.3s;
+        background: linear-gradient(135deg, #10b981, #047857);
         border: 1px solid rgba(255,255,255,0.2);
-        font-size: 1rem;
-        background: linear-gradient(135deg, #10b981, #047857); /* تدرج أخضر فخم */
         box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        transition: 0.3s;
+    }
+    .dl-link:hover {
+        opacity: 0.95;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.5);
     }
     
-    .dl-link:hover { 
-        opacity: 0.95; 
-        transform: translateY(-3px); 
-        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.5); 
-    }
-
+    /* إخفاء عناصر النظام */
     #MainMenu, footer, header {visibility: hidden;}
     .stTabs [data-baseweb="tab-list"] { justify-content: center; flex-direction: row-reverse; }
     </style>
@@ -185,10 +183,8 @@ def show_expander_card(item, idx, cat_name):
         st.write("##### 1️⃣ انسخ الرابط:")
         st_copy_to_clipboard(item['path'], "📋 اضغط للنسخ", key=f"copy_{unique_key}")
         
-        # 2. زر التحميل الوحيد (الموثوق)
+        # 2. زر التحميل
         st.write("##### 2️⃣ التحميل:")
-        
-        # رابط SaveFrom
         st.markdown(f'<a href="https://en.savefrom.net/" target="_blank" class="dl-link">🚀 الذهاب لصفحة التحميل (SaveFrom)</a>', unsafe_allow_html=True)
         
         st.caption("💡 هذا الموقع هو الأفضل حالياً. انسخ الرابط وألصقه هناك.")
