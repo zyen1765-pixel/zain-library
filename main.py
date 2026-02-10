@@ -44,11 +44,12 @@ def check_password():
 if not check_password():
     st.stop()
 
-# --- 3. التصميم (CSS) - الحل القاتل لـ arrow_right ---
+# --- 3. التصميم (CSS) - النسخة المصفاة من أي تداخل ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap');
 
+    /* 1. الخلفية والألوان */
     html, body, .stApp {
         background-color: #0f172a !important;
         background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%);
@@ -56,56 +57,39 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* تطبيق الخط على النصوص الحقيقية فقط */
-    h1, h2, h3, h4, h5, h6, p, label, button, input, textarea, div, span {
+    /* 2. تطبيق الخط على النصوص الصريحة فقط (هذا يحل مشكلة arrow_right) */
+    h1, h2, h3, h4, h5, h6, p, label, button, .stMarkdown p, .stButton button, .stTextInput input {
         font-family: 'Almarai', sans-serif !important;
     }
-
-    /* ============================================================ */
-    /* 🛠️ الضربة القاضية لنص _arrow_right 🛠️ */
-    /* ============================================================ */
     
-    /* إخفاء أي محتوى مولد (Pseudo-elements) قد يحمل نص الأيقونة */
-    .streamlit-expanderHeader::before, 
-    .streamlit-expanderHeader::after,
-    [data-testid="stExpanderToggleIcon"]::before,
-    [data-testid="stExpanderToggleIcon"]::after {
-        content: none !important;
-        display: none !important;
-    }
-
-    /* إخفاء حاوية الأيقونة بالكامل وبكل الطرق */
-    [data-testid="stExpanderToggleIcon"], 
-    .streamlit-expanderHeader svg {
+    /* 3. إخفاء أيقونة السهم تماماً وبشكل صامت */
+    [data-testid="stExpanderToggleIcon"], svg {
         display: none !important;
         visibility: hidden !important;
-        width: 0 !important;
-        height: 0 !important;
-        pointer-events: none !important;
     }
 
-    /* جعل أي نص "تائه" داخل الهيدر يختفي تماماً */
+    /* 4. تنسيق البطاقات (Expander) */
     .streamlit-expanderHeader {
-        color: transparent !important;
-        font-size: 0px !important;
         background-color: rgba(30, 41, 59, 0.7) !important;
+        border: none !important;
         border-radius: 15px !important;
         padding: 15px 20px !important;
         margin-bottom: 12px;
         display: block !important;
     }
 
-    /* إظهار "العنوان الفعلي" فقط كاستثناء وحيد */
+    /* النص داخل البطاقة */
     .streamlit-expanderHeader p {
-        color: white !important;
         font-size: 1.1rem !important;
         font-weight: 700 !important;
-        display: block !important;
+        margin: 0 !important;
         text-align: right !important;
+        width: 100% !important;
         direction: rtl !important;
+        color: white !important;
     }
-    /* ============================================================ */
 
+    /* 5. تنسيق الحقول */
     .stTextInput input {
         background-color: rgba(255, 255, 255, 0.05) !important;
         color: #ffffff !important;
@@ -119,20 +103,17 @@ st.markdown("""
         border-color: rgba(255, 255, 255, 0.2) !important;
         color: white !important;
     }
-    
-    h2, h3, h4, h5, h6, p, label, .stTextInput > label, .stSelectbox > label {
-        text-align: right !important;
-        direction: rtl !important;
-    }
 
-    /* تكبير اللابتوب */
+    /* -------------------------------------------------------- */
+    /* 💻 تكبير الخط للابتوب (Desktop Mode) 💻 */
     @media (min-width: 1000px) {
         .block-container { max-width: 90% !important; padding-top: 2rem !important; }
         h1 { font-size: 4rem !important; }
-        p, label { font-size: 1.2rem !important; }
+        p, label, .stButton button { font-size: 1.25rem !important; }
         .streamlit-expanderHeader p { font-size: 1.5rem !important; }
         .center-logo { width: 160px !important; }
     }
+    /* -------------------------------------------------------- */
 
     .streamlit-expanderContent {
         background-color: transparent !important;
