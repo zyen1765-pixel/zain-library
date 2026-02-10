@@ -13,30 +13,61 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. التصميم (CSS) ---
+# --- 2. التصميم (CSS) - النسخة المحسنة للألوان ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap');
-    html, body, [class*="css"] { font-family: 'Cairo', sans-serif !important; }
-    :root { --bg-dark: #0f172a; --primary: #38bdf8; --glass: rgba(30, 41, 59, 0.7); }
-    .stApp { background-color: var(--bg-dark) !important; background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%); background-attachment: fixed; }
     
-    h1 { font-weight: 900 !important; color: white !important; }
-    h3, p, label, div, span { text-align: right; }
+    /* 1. إجبار الخط الأبيض والخلفية الغامقة على جميع الأجهزة */
+    html, body, [class*="css"], .stApp { 
+        font-family: 'Cairo', sans-serif !important; 
+        color: #ffffff !important; 
+    }
     
+    :root { 
+        --bg-dark: #0f172a; 
+        --primary: #38bdf8; 
+    }
+    
+    .stApp { 
+        background-color: var(--bg-dark) !important; 
+        background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%); 
+        background-attachment: fixed; 
+    }
+    
+    /* إصلاح لون النصوص داخل العناوين والفقرات */
+    h1, h2, h3, h4, h5, h6, p, label, div, span { 
+        color: white !important; 
+        text-align: right; 
+    }
+    
+    /* إصلاح لون الكتابة داخل مربعات الإدخال */
+    .stTextInput input, .stSelectbox div {
+        color: white !important;
+    }
+
+    /* 2. تنسيق اللوغو */
     .app-icon {
         width: 100px; height: 100px; object-fit: contain; background-color: white;
         border-radius: 20px; border: 3px solid #ffffff; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         display: block; 
     }
     
+    /* 3. تنسيق البطاقات */
     .streamlit-expanderHeader {
-        background-color: var(--glass); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
-        color: white !important; direction: rtl;
+        background-color: rgba(30, 41, 59, 0.7); 
+        border: 1px solid rgba(255,255,255,0.1); 
+        border-radius: 10px;
+        color: white !important; 
+        direction: rtl;
     }
-    .streamlit-expanderContent { background-color: rgba(0,0,0,0.2); border-radius: 0 0 10px 10px; border-top: none; }
+    .streamlit-expanderContent { 
+        background-color: rgba(0,0,0,0.2); 
+        border-radius: 0 0 10px 10px; 
+        border-top: none; 
+    }
     
-    /* تنسيق الأزرار */
+    /* 4. تنسيق أزرار التحميل */
     .dl-link {
         display: block;
         width: 100%;
@@ -51,9 +82,9 @@ st.markdown("""
         border: 1px solid rgba(255,255,255,0.1);
         font-size: 0.9rem;
     }
-    .snapsave-btn { background: linear-gradient(45deg, #0ea5e9, #0284c7); } /* أزرق سماوي */
-    .y2mate-btn { background: linear-gradient(45deg, #ef4444, #b91c1c); } /* أحمر */
-    .savefrom-btn { background: linear-gradient(45deg, #10b981, #059669); } /* أخضر */
+    .savefrom-btn { background: linear-gradient(45deg, #10b981, #059669); } 
+    .snapsave-btn { background: linear-gradient(45deg, #0ea5e9, #0284c7); } 
+    .y2mate-btn { background: linear-gradient(45deg, #ef4444, #b91c1c); } 
     
     .dl-link:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
 
@@ -78,8 +109,6 @@ def save_to_disk():
 def fix_youtube_url(url):
     if not url: return ""
     u = url.strip()
-    # هنا سنبقي رابط الشورتس كما هو shorts/ لأن بعض المواقع تفضله هكذا
-    # ولكن سنصلح الروابط المختصرة فقط
     if "youtu.be/" in u:
         vid_id = u.split("youtu.be/")[-1].split("?")[0]
         u = f"https://www.youtube.com/watch?v={vid_id}"
@@ -149,16 +178,13 @@ def show_expander_card(item, idx, cat_name):
         c1, c2, c3 = st.columns(3)
         
         with c1:
-            # الخيار الأول: SaveFrom
-            st.markdown(f'<a href="https://en.savefrom.net/" target="_blank" class="dl-link savefrom-btn">🟢 SaveFrom (للفيديوهات)</a>', unsafe_allow_html=True)
+            st.markdown(f'<a href="https://en.savefrom.net/" target="_blank" class="dl-link savefrom-btn">🟢 SaveFrom (فيديوهات)</a>', unsafe_allow_html=True)
         with c2:
-            # الخيار الثاني: SnapSave (وحش الشورتس)
-            st.markdown(f'<a href="https://snapsave.io/en" target="_blank" class="dl-link snapsave-btn">🔵 SnapSave (أقوى للشورتس)</a>', unsafe_allow_html=True)
+            st.markdown(f'<a href="https://snapsave.io/en" target="_blank" class="dl-link snapsave-btn">🔵 SnapSave (للشورتس)</a>', unsafe_allow_html=True)
         with c3:
-            # الخيار الثالث: Y2Mate Shorts (مخصص)
             st.markdown(f'<a href="https://www.y2mate.com/en/youtube-shorts-downloader" target="_blank" class="dl-link y2mate-btn">🔴 Y2Mate (احتياطي)</a>', unsafe_allow_html=True)
 
-        st.caption("💡 نصيحة: للشورتس، جرب الزر الأزرق (SnapSave) أولاً.")
+        st.caption("💡 نصيحة: للشورتس استخدم الزر الأزرق (SnapSave).")
 
         st.markdown("---")
         if st.button("حذف الفيديو 🗑️", key=f"del_{unique_key}"):
