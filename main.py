@@ -50,7 +50,7 @@ st.markdown("""
     /* استيراد الخط */
     @import url('https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap');
 
-    /* 1. تثبيت الألوان */
+    /* 1. إعداد الألوان والخطوط */
     :root {
         --primary-color: #38bdf8;
         --background-color: #0f172a;
@@ -65,28 +65,39 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* 2. تطبيق الخط على النصوص فقط */
+    /* 2. تطبيق الخط على النصوص الظاهرة فقط */
     h1, h2, h3, h4, h5, h6, p, label, button, input, textarea, .stMarkdown, div, span {
         font-family: 'Almarai', sans-serif !important;
     }
 
-    /* ---------------------------------------------------------------- */
-    /* 🔥 الحل النووي لمشكلة arrow_right 🔥 */
-    /* ---------------------------------------------------------------- */
-    [data-testid="stExpanderToggleIcon"],
-    .streamlit-expanderHeader svg,
-    .streamlit-expanderHeader span[data-testid="stExpanderToggleIcon"] {
-        font-size: 0 !important;       /* اجعل حجم النص صفر */
-        width: 0 !important;           /* اجعل العرض صفر */
-        height: 0 !important;          /* اجعل الطول صفر */
-        opacity: 0 !important;         /* اجعله شفافاً تماماً */
-        display: none !important;      /* أخفه من الوجود */
-        visibility: hidden !important; /* أخفه عن الأنظار */
+    /* ============================================================ */
+    /* 👻 الحل الشبح لمشكلة arrow_right 👻 */
+    /* ============================================================ */
+    
+    /* أولاً: إخفاء الحاوية تماماً */
+    [data-testid="stExpanderToggleIcon"] {
+        visibility: hidden !important; /* إخفاء بصري */
+        width: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
-    /* ---------------------------------------------------------------- */
+
+    /* ثانياً: جعل النص شفافاً (في حال ظهر رغماً عنا) */
+    [data-testid="stExpanderToggleIcon"] p, 
+    [data-testid="stExpanderToggleIcon"] svg,
+    .streamlit-expanderHeader span {
+        color: transparent !important; /* لون شفاف */
+        font-size: 0 !important;       /* حجم صفر */
+    }
+    
+    /* حماية إضافية: منع الخط عن أيقونات النظام */
+    .material-icons, [data-testid="stExpanderToggleIcon"] {
+        font-family: sans-serif !important; 
+    }
+    /* ============================================================ */
 
 
-    /* 3. تنسيق الحقول الشفافة (بدون مربعات غريبة) */
+    /* 3. تنسيق الحقول (شفاف وأنيق) */
     .stTextInput input {
         background-color: rgba(255, 255, 255, 0.05) !important;
         color: #ffffff !important;
@@ -108,7 +119,7 @@ st.markdown("""
     }
 
     /* ============================================================ */
-    /* 🖥️ قسم اللابتوب (Desktop Zoom) 🖥️ */
+    /* 🖥️ تكبير اللابتوب (Desktop Zoom) 🖥️ */
     /* ============================================================ */
     @media (min-width: 1000px) {
         .block-container {
