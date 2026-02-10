@@ -4,6 +4,8 @@ import json
 import time
 import base64
 import requests
+import shutil
+import yt_dlp
 from PIL import Image
 
 # --- 1. إعدادات الصفحة ---
@@ -33,6 +35,8 @@ st.markdown("""
         color: white !important; direction: rtl;
     }
     .streamlit-expanderContent { background-color: rgba(0,0,0,0.2); border-radius: 0 0 10px 10px; border-top: none; }
+    /* تحسين شكل زر تحميل الملف */
+    .stFileUploader { text-align: right; }
     #MainMenu, footer, header {visibility: hidden;}
     .stTabs [data-baseweb="tab-list"] { justify-content: center; flex-direction: row-reverse; }
     </style>
@@ -40,6 +44,11 @@ st.markdown("""
 
 # --- 3. إدارة الملفات ---
 DB_FILE = "zain_library.json"
+TEMP_DIR = "/tmp/zain_downloads"
+COOKIES_FILE = "/tmp/cookies.txt" # مسار ملف الكوكيز المؤقت
+
+if not os.path.exists(TEMP_DIR): os.makedirs(TEMP_DIR, exist_ok=True)
+
 if 'videos' not in st.session_state:
     if os.path.exists(DB_FILE):
         try: st.session_state.videos = json.load(open(DB_FILE, "r", encoding="utf-8"))
@@ -57,67 +66,81 @@ def clean_url(url):
     if "instagram.com" in u: u = u.split("?")[0]
     return u
 
-# --- 4. دالة التحميل الذكية (قائمة سيرفرات محدثة) ---
-def download_media_via_api(url, mode):
-    # قائمة سيرفرات جديدة ومحدثة (إذا تعطل واحد يعمل الآخر)
-    COBALT_INSTANCES = [
-        "https://api.cobalt.tools",       # الرسمي
-        "https://cobalt.mashed.jp",       # يابان
-        "https://cobalt.lacey.se",        # أوروبا
-        "https://cobalt.orly.digital",    # بديل قوي
-        "https://cobalt.kwiatekmiki.pl",  # بديل
+# --- 4. دالة التحميل عبر API (الخيار الأول - الأسهل) ---
+def download_via_cobalt(url, mode):
+    # قائمة سيرفرات محدثة وقوية
+    SERVERS = [
+        "https://cobalt.moshibox.org",
+        "https://cobalt.arms.nu",
+        "https://cobalt.ethan.eu.org",
+        "https://cobalt.rudart.com",
+        "https://cobalt.wafflehacker.io",
+        "https://api.cobalt.tools", 
+        "https://cobalt.kwiatekmiki.pl"
     ]
     
     headers = {
         "Accept": "application/json",
         "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.0.0 Safari/537.36"
-    }
-
-    data = {
-        "url": url,
-        "vQuality": "720" if mode == "video" else "max",
-        "filenamePattern": "basic"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
     }
     
-    if mode == "audio":
-        data["isAudioOnly"] = True
+    data = {"url": url, "filenamePattern": "basic"}
+    if mode == "audio": data["isAudioOnly"] = True
     
-    last_error = ""
-    
-    # حلقة تكرار تجرب السيرفرات واحداً تلو الآخر
-    for base_url in COBALT_INSTANCES:
-        api_url = f"{base_url}/api/json"
+    last_err = ""
+    for base in SERVERS:
         try:
-            # محاولة الاتصال بالسيرفر الحالي
-            response = requests.post(api_url, json=data, headers=headers, timeout=10) # مهلة 10 ثواني لكل سيرفر
-            
-            if response.status_code == 200:
-                resp_json = response.json()
-                if "url" in resp_json:
-                    # نجحنا! وجدنا رابط التحميل
-                    download_link = resp_json["url"]
-                    file_response = requests.get(download_link, stream=True, timeout=20)
-                    
-                    # إرجاع الملف فوراً
-                    return file_response.content, None
-            else:
-                 # تسجيل الخطأ للانتقال للتالي
-                last_error = f"Server {base_url} returned {response.status_code}"
-                continue
-
+            # نجرب الاتصال بالسيرفر
+            resp = requests.post(f"{base}/api/json", json=data, headers=headers, timeout=8)
+            if resp.status_code == 200:
+                json_resp = resp.json()
+                if "url" in json_resp:
+                    # التحميل من الرابط الناتج
+                    file_resp = requests.get(json_resp["url"], stream=True, timeout=20)
+                    return file_resp.content, None, base # إرجاع المحتوى والسيرفر الناجح
         except Exception as e:
-            last_error = str(e)
-            continue # انتقل للسيرفر التالي في القائمة
+            last_err = str(e)
+            continue
             
-    return None, f"عذراً، لم نتمكن من الاتصال بأي سيرفر. (الخطأ الأخير: {last_error})"
+    return None, f"فشلت جميع السيرفرات. (آخر خطأ: {last_err})", None
 
-# --- 5. الهيدر واللوغو ---
+# --- 5. دالة التحميل عبر yt-dlp (الخيار الثاني - الكوكيز) ---
+def download_via_ytdlp(url, mode, cookie_path=None):
+    try:
+        # تنظيف المجلد
+        if os.path.exists(TEMP_DIR): shutil.rmtree(TEMP_DIR)
+        os.makedirs(TEMP_DIR, exist_ok=True)
+        
+        opts = {
+            'outtmpl': f'{TEMP_DIR}/%(title)s.%(ext)s',
+            'quiet': True, 'no_warnings': True, 'restrictfilenames': True,
+        }
+        
+        # إذا رفع المستخدم ملف كوكيز، نستخدمه (هذا يحل مشكلة الحظر 100%)
+        if cookie_path and os.path.exists(cookie_path):
+            opts['cookiefile'] = cookie_path
+        
+        if mode == "audio":
+            opts['format'] = 'bestaudio/best'
+            opts['postprocessors'] = [{'key': 'FFmpegExtractAudio','preferredcodec': 'mp3'}]
+        else:
+            opts['format'] = 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best'
+
+        with yt_dlp.YoutubeDL(opts) as ydl:
+            info = ydl.extract_info(url, download=True)
+            fname = ydl.prepare_filename(info)
+            if mode == "audio": fname = os.path.splitext(fname)[0] + ".mp3"
+            return fname, info.get('title', 'media'), None
+            
+    except Exception as e:
+        return None, None, str(e)
+
+# --- 6. الهيدر ---
 @st.cache_data
 def get_img_as_base64(file):
     try:
-        with open(file, "rb") as f:
-            data = f.read()
+        with open(file, "rb") as f: data = f.read()
         return base64.b64encode(data).decode()
     except: return None
 
@@ -137,7 +160,20 @@ if os.path.exists(logo_path):
 else:
     st.markdown("<h1 style='text-align:center;'>مكتبة زين</h1>", unsafe_allow_html=True)
 
-# --- 6. الواجهة ---
+# --- 7. الشريط الجانبي (المفتاح الذهبي) ---
+with st.sidebar:
+    st.header("⚙️ إعدادات متقدمة")
+    st.info("إذا واجهت مشاكل في التحميل، يمكنك رفع ملف Cookies هنا لحل مشكلة حظر يوتيوب.")
+    uploaded_cookies = st.file_uploader("ارفع ملف cookies.txt (اختياري)", type="txt")
+    
+    cookie_used = False
+    if uploaded_cookies is not None:
+        with open(COOKIES_FILE, "wb") as f:
+            f.write(uploaded_cookies.getbuffer())
+        st.success("✅ تم تفعيل الكوكيز!")
+        cookie_used = True
+
+# --- 8. الواجهة الرئيسية ---
 with st.expander("➕ إضافة فيديو جديد", expanded=False):
     c1, c2 = st.columns([1, 1])
     with c2: title_in = st.text_input("العنوان")
@@ -154,6 +190,33 @@ st.markdown("---")
 categories = ["الكل", "دراسة", "ديني", "تصميم", "ترفيه", "أخرى"]
 tabs = st.tabs(categories)
 
+def handle_download(item, mode, unique_key):
+    # محاولة 1: السيرفرات الخارجية (Cobalt)
+    with st.spinner("جاري محاولة التحميل عبر السيرفرات السحابية..."):
+        content, err, srv = download_via_cobalt(item['path'], mode)
+        if content:
+            ext = "mp3" if mode == "audio" else "mp4"
+            st.success(f"تم التحميل من السيرفر: {srv}")
+            st.download_button(f"💾 حفظ {ext.upper()}", content, file_name=f"{item['title']}.{ext}", mime=f"audio/{ext}" if mode=="audio" else "video/mp4", key=f"dl_api_{unique_key}")
+            return
+
+    # محاولة 2: التحميل المباشر (yt-dlp) إذا فشلت السيرفرات
+    st.warning(f"فشلت السيرفرات السحابية: {err}")
+    with st.spinner("جاري المحاولة عبر المحرك الداخلي (yt-dlp)..."):
+        # استخدام ملف الكوكيز إذا تم رفعه
+        c_path = COOKIES_FILE if cookie_used else None
+        fpath, title, err_local = download_via_ytdlp(item['path'], mode, c_path)
+        
+        if fpath and os.path.exists(fpath):
+            with open(fpath, "rb") as file:
+                ext = "mp3" if mode == "audio" else "mp4"
+                st.success("✅ تم التحميل بنجاح عبر المحرك الداخلي")
+                st.download_button(f"💾 حفظ {ext.upper()}", file, file_name=f"{title}.{ext}", mime=f"audio/{ext}" if mode=="audio" else "video/mp4", key=f"dl_loc_{unique_key}")
+        else:
+            st.error(f"❌ فشل التحميل نهائياً. السبب: {err_local}")
+            if "Sign in" in str(err_local) or "403" in str(err_local):
+                st.info("💡 الحل: يوتيوب يحظر السيرفر. قم بتحميل ملف cookies.txt من متصفحك وارفعه في القائمة الجانبية.")
+
 def show_expander_card(item, idx, cat_name):
     unique_key = f"{cat_name}_{idx}"
     icon = "🎥"
@@ -164,26 +227,16 @@ def show_expander_card(item, idx, cat_name):
             st.video(item['path'])
         else: st.info(f"رابط خارجي: {item['path']}")
 
-        st.markdown("<p style='color:#38bdf8; font-size:0.9rem; margin-top:10px;'>⬇️ تحميل بصيغة:</p>", unsafe_allow_html=True)
+        st.markdown("<p style='color:#38bdf8; font-size:0.9rem; margin-top:10px;'>⬇️ خيارات التحميل:</p>", unsafe_allow_html=True)
         c1, c2 = st.columns(2)
         
         with c1:
             if st.button("🎵 تحميل صوت (MP3)", key=f"btn_mp3_{unique_key}"):
-                with st.spinner("جاري تجربة السيرفرات المتاحة..."):
-                    file_content, err = download_media_via_api(item['path'], "audio")
-                    if file_content:
-                        st.download_button("💾 اضغط للحفظ", file_content, file_name=f"{item['title']}.mp3", mime="audio/mpeg", key=f"dl_mp3_{unique_key}")
-                    else:
-                        st.error(f"{err}")
+                handle_download(item, "audio", unique_key)
         
         with c2:
             if st.button("📺 تحميل فيديو (MP4)", key=f"btn_vid_{unique_key}"):
-                with st.spinner("جاري تجربة السيرفرات المتاحة..."):
-                    file_content, err = download_media_via_api(item['path'], "video")
-                    if file_content:
-                        st.download_button("💾 اضغط للحفظ", file_content, file_name=f"{item['title']}.mp4", mime="video/mp4", key=f"dl_vid_{unique_key}")
-                    else:
-                        st.error(f"{err}")
+                handle_download(item, "video", unique_key)
 
         st.markdown("---")
         if st.button("حذف الفيديو 🗑️", key=f"del_{unique_key}"):
