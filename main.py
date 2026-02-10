@@ -57,14 +57,15 @@ def clean_url(url):
     if "instagram.com" in u: u = u.split("?")[0]
     return u
 
-# --- 4. دالة التحميل الذكية (متعددة السيرفرات) ---
+# --- 4. دالة التحميل الذكية (قائمة سيرفرات محدثة) ---
 def download_media_via_api(url, mode):
-    # قائمة سيرفرات بديلة (إذا تعطل واحد يعمل الآخر)
+    # قائمة سيرفرات جديدة ومحدثة (إذا تعطل واحد يعمل الآخر)
     COBALT_INSTANCES = [
-        "https://api.cobalt.tools",
-        "https://cobalt.kwiatekmiki.pl",
-        "https://cobalt.mywaifu.best",
-        "https://cobalt.q11.ba"
+        "https://api.cobalt.tools",       # الرسمي
+        "https://cobalt.mashed.jp",       # يابان
+        "https://cobalt.lacey.se",        # أوروبا
+        "https://cobalt.orly.digital",    # بديل قوي
+        "https://cobalt.kwiatekmiki.pl",  # بديل
     ]
     
     headers = {
@@ -89,25 +90,27 @@ def download_media_via_api(url, mode):
         api_url = f"{base_url}/api/json"
         try:
             # محاولة الاتصال بالسيرفر الحالي
-            response = requests.post(api_url, json=data, headers=headers, timeout=15)
+            response = requests.post(api_url, json=data, headers=headers, timeout=10) # مهلة 10 ثواني لكل سيرفر
             
             if response.status_code == 200:
                 resp_json = response.json()
                 if "url" in resp_json:
                     # نجحنا! وجدنا رابط التحميل
                     download_link = resp_json["url"]
-                    file_response = requests.get(download_link, stream=True)
+                    file_response = requests.get(download_link, stream=True, timeout=20)
                     
-                    # تحديد الامتداد
-                    ext = "mp3" if mode == "audio" else "mp4"
                     # إرجاع الملف فوراً
                     return file_response.content, None
-            
+            else:
+                 # تسجيل الخطأ للانتقال للتالي
+                last_error = f"Server {base_url} returned {response.status_code}"
+                continue
+
         except Exception as e:
             last_error = str(e)
             continue # انتقل للسيرفر التالي في القائمة
             
-    return None, f"عذراً، جميع السيرفرات مشغولة حالياً. حاول بعد قليل. (Error: {last_error})"
+    return None, f"عذراً، لم نتمكن من الاتصال بأي سيرفر. (الخطأ الأخير: {last_error})"
 
 # --- 5. الهيدر واللوغو ---
 @st.cache_data
@@ -166,7 +169,7 @@ def show_expander_card(item, idx, cat_name):
         
         with c1:
             if st.button("🎵 تحميل صوت (MP3)", key=f"btn_mp3_{unique_key}"):
-                with st.spinner("جاري الاتصال بأفضل سيرفر متاح..."):
+                with st.spinner("جاري تجربة السيرفرات المتاحة..."):
                     file_content, err = download_media_via_api(item['path'], "audio")
                     if file_content:
                         st.download_button("💾 اضغط للحفظ", file_content, file_name=f"{item['title']}.mp3", mime="audio/mpeg", key=f"dl_mp3_{unique_key}")
@@ -175,7 +178,7 @@ def show_expander_card(item, idx, cat_name):
         
         with c2:
             if st.button("📺 تحميل فيديو (MP4)", key=f"btn_vid_{unique_key}"):
-                with st.spinner("جاري الاتصال بأفضل سيرفر متاح..."):
+                with st.spinner("جاري تجربة السيرفرات المتاحة..."):
                     file_content, err = download_media_via_api(item['path'], "video")
                     if file_content:
                         st.download_button("💾 اضغط للحفظ", file_content, file_name=f"{item['title']}.mp4", mime="video/mp4", key=f"dl_vid_{unique_key}")
