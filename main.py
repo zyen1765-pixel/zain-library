@@ -6,28 +6,17 @@ import base64
 import yt_dlp
 from PIL import Image
 
-# --- 1. إعدادات الصفحة (يجب أن تكون في البداية دائماً) ---
+# --- 1. إعدادات الصفحة ---
 st.set_page_config(
     page_title="مكتبة زين",
-    page_icon="💎", # سنحاول تحديثها لاحقاً إذا وجدنا اللوغو
+    page_icon="💎", 
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. تحسين السرعة (Caching) ---
+# --- 2. دوال تحسين السرعة (Caching) ---
 
-# تسريع تشغيل مكتبة الصوت (يعمل مرة واحدة فقط)
-@st.cache_resource
-def setup_ffmpeg():
-    try:
-        import static_ffmpeg
-        static_ffmpeg.add_paths()
-    except ImportError:
-        pass
-
-setup_ffmpeg() # استدعاء الدالة
-
-# تسريع تحويل الصور (يحفظ النتيجة في الذاكرة)
+# دالة تحويل الصورة (تحفظ النتيجة في الذاكرة لتسريع التحميل)
 @st.cache_data
 def get_img_as_base64(file):
     with open(file, "rb") as f:
@@ -106,11 +95,12 @@ def clean_url(url):
 
 # --- 5. دالة التحميل ---
 def download_media(url, format_type):
+    # خيارات التحميل الأساسية
     ydl_opts = {
         'outtmpl': f'{TEMP_DOWNLOADS}/%(title)s.%(ext)s',
         'quiet': True, 'no_warnings': True, 'restrictfilenames': True,
         'socket_timeout': 30,
-        'ffmpeg_location': None,
+        # ملاحظة: حذفنا تحديد موقع ffmpeg لأنه سيتم التعرف عليه تلقائياً من النظام
         'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
     }
 
