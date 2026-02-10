@@ -3,6 +3,7 @@ import json
 import os
 import time
 import base64
+from st_copy_to_clipboard import st_copy_to_clipboard
 
 # --- 1. إعدادات الصفحة ---
 st.set_page_config(
@@ -50,9 +51,9 @@ st.markdown("""
         border: 1px solid rgba(255,255,255,0.1);
         font-size: 0.9rem;
     }
-    .savefrom-btn { background: linear-gradient(45deg, #10b981, #059669); } 
-    .shorts-btn { background: linear-gradient(45deg, #db2777, #be185d); } /* وردي للشورتس */
-    .cobalt-btn { background: linear-gradient(45deg, #3b82f6, #2563eb); } 
+    .snapsave-btn { background: linear-gradient(45deg, #0ea5e9, #0284c7); } /* أزرق سماوي */
+    .y2mate-btn { background: linear-gradient(45deg, #ef4444, #b91c1c); } /* أحمر */
+    .savefrom-btn { background: linear-gradient(45deg, #10b981, #059669); } /* أخضر */
     
     .dl-link:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
 
@@ -77,8 +78,9 @@ def save_to_disk():
 def fix_youtube_url(url):
     if not url: return ""
     u = url.strip()
-    if "youtube.com/shorts/" in u: u = u.replace("shorts/", "watch?v=")
-    elif "youtu.be/" in u:
+    # هنا سنبقي رابط الشورتس كما هو shorts/ لأن بعض المواقع تفضله هكذا
+    # ولكن سنصلح الروابط المختصرة فقط
+    if "youtu.be/" in u:
         vid_id = u.split("youtu.be/")[-1].split("?")[0]
         u = f"https://www.youtube.com/watch?v={vid_id}"
     if "instagram.com" in u: u = u.split("?")[0]
@@ -139,7 +141,7 @@ def show_expander_card(item, idx, cat_name):
         
         # 1. نسخ الرابط
         st.write("##### 1️⃣ انسخ الرابط:")
-        st.code(item['path'], language="text")
+        st_copy_to_clipboard(item['path'], "📋 اضغط هنا للنسخ", key=f"copy_{unique_key}")
         
         # 2. أزرار المواقع
         st.write("##### 2️⃣ اختر موقع التحميل:")
@@ -147,16 +149,16 @@ def show_expander_card(item, idx, cat_name):
         c1, c2, c3 = st.columns(3)
         
         with c1:
-            # زر SaveFrom (للفيديوهات العادية)
-            st.markdown(f'<a href="https://en.savefrom.net/" target="_blank" class="dl-link savefrom-btn">🟢 SaveFrom</a>', unsafe_allow_html=True)
+            # الخيار الأول: SaveFrom
+            st.markdown(f'<a href="https://en.savefrom.net/" target="_blank" class="dl-link savefrom-btn">🟢 SaveFrom (للفيديوهات)</a>', unsafe_allow_html=True)
         with c2:
-            # زر ShortsNoob (متخصص للشورتس)
-            st.markdown(f'<a href="https://shortsnoob.com/" target="_blank" class="dl-link shorts-btn">🔥 ShortsNoob</a>', unsafe_allow_html=True)
+            # الخيار الثاني: SnapSave (وحش الشورتس)
+            st.markdown(f'<a href="https://snapsave.io/en" target="_blank" class="dl-link snapsave-btn">🔵 SnapSave (أقوى للشورتس)</a>', unsafe_allow_html=True)
         with c3:
-            # زر 10Downloader (بديل قوي)
-            st.markdown(f'<a href="https://10downloader.com/en" target="_blank" class="dl-link cobalt-btn">💎 10Downloader</a>', unsafe_allow_html=True)
+            # الخيار الثالث: Y2Mate Shorts (مخصص)
+            st.markdown(f'<a href="https://www.y2mate.com/en/youtube-shorts-downloader" target="_blank" class="dl-link y2mate-btn">🔴 Y2Mate (احتياطي)</a>', unsafe_allow_html=True)
 
-        st.caption("💡 للشورتس: استخدم الزر الوردي (ShortsNoob) فهو الأفضل حالياً.")
+        st.caption("💡 نصيحة: للشورتس، جرب الزر الأزرق (SnapSave) أولاً.")
 
         st.markdown("---")
         if st.button("حذف الفيديو 🗑️", key=f"del_{unique_key}"):
