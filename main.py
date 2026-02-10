@@ -44,19 +44,18 @@ def check_password():
 if not check_password():
     st.stop()
 
-# --- 3. التصميم (CSS) - الإصلاح الشامل ---
+# --- 3. التصميم (CSS) ---
 st.markdown("""
     <style>
     /* استيراد الخط */
     @import url('https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap');
 
-    /* 1. تثبيت الألوان (Dark Mode Force) */
+    /* 1. تثبيت الألوان */
     :root {
         --primary-color: #38bdf8;
         --background-color: #0f172a;
         --secondary-background-color: #1e293b;
         --text-color: #ffffff;
-        --font: 'Almarai', sans-serif;
     }
 
     html, body, .stApp {
@@ -66,34 +65,42 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* 2. تطبيق الخط بذكاء (على النصوص فقط) */
+    /* 2. تطبيق الخط على النصوص فقط */
     h1, h2, h3, h4, h5, h6, p, label, button, input, textarea, .stMarkdown, div, span {
         font-family: 'Almarai', sans-serif !important;
     }
 
-    /* 3. منع الخط عن الأيقونات (حل مشكلة arrow_right) */
-    i, svg, .material-icons, [data-testid="stExpanderToggleIcon"] {
-        font-family: sans-serif !important;
-        display: none !important; /* إخفاء السهم نهائياً */
+    /* ---------------------------------------------------------------- */
+    /* 🔥 الحل النووي لمشكلة arrow_right 🔥 */
+    /* ---------------------------------------------------------------- */
+    [data-testid="stExpanderToggleIcon"],
+    .streamlit-expanderHeader svg,
+    .streamlit-expanderHeader span[data-testid="stExpanderToggleIcon"] {
+        font-size: 0 !important;       /* اجعل حجم النص صفر */
+        width: 0 !important;           /* اجعل العرض صفر */
+        height: 0 !important;          /* اجعل الطول صفر */
+        opacity: 0 !important;         /* اجعله شفافاً تماماً */
+        display: none !important;      /* أخفه من الوجود */
+        visibility: hidden !important; /* أخفه عن الأنظار */
     }
+    /* ---------------------------------------------------------------- */
 
-    /* 4. إزالة المربعات الغريبة (جعل الحقول شفافة) */
+
+    /* 3. تنسيق الحقول الشفافة (بدون مربعات غريبة) */
     .stTextInput input {
-        background-color: rgba(255, 255, 255, 0.05) !important; /* شفاف */
+        background-color: rgba(255, 255, 255, 0.05) !important;
         color: #ffffff !important;
         border: 1px solid rgba(255, 255, 255, 0.2) !important;
         direction: rtl !important;
         text-align: right !important;
     }
     
-    /* إصلاح القوائم المنسدلة (إزالة الخلفية المزدوجة) */
     div[data-baseweb="select"] > div {
         background-color: rgba(255, 255, 255, 0.05) !important;
         border-color: rgba(255, 255, 255, 0.2) !important;
         color: white !important;
     }
     
-    /* ضمان أن النصوص يمين */
     h2, h3, h4, h5, h6, p, label, .stTextInput > label, .stSelectbox > label {
         text-align: right !important;
         direction: rtl !important;
@@ -101,7 +108,7 @@ st.markdown("""
     }
 
     /* ============================================================ */
-    /* 🖥️ قسم التكبير الخاص باللابتوب (Desktop Zoom) 🖥️ */
+    /* 🖥️ قسم اللابتوب (Desktop Zoom) 🖥️ */
     /* ============================================================ */
     @media (min-width: 1000px) {
         .block-container {
@@ -119,7 +126,7 @@ st.markdown("""
     }
     /* ============================================================ */
 
-    /* تنسيق البطاقات (نظيف جداً) */
+    /* تنسيق البطاقات */
     .streamlit-expanderHeader {
         background-color: rgba(30, 41, 59, 0.7) !important;
         border: none !important;
