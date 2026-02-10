@@ -138,29 +138,25 @@ def show_expander_card(item, idx, cat_name):
         st.markdown("---")
         
         # 1. قسم النسخ
-        st.write("##### 1️⃣ انسخ الرابط:")
+        st.write("##### 1️⃣ انسخ الرابط أولاً:")
         st.code(item['path'], language="text")
         
         # 2. قسم التحميل
-        st.write("##### 2️⃣ اختر موقع التحميل:")
+        st.write("##### 2️⃣ ثم افتح الموقع وألصق الرابط:")
         
-        # تحضير رابط SaveFrom (SSYoutube)
-        # نقوم باستبدال الدومين ليفتح الموقع مباشرة
-        ss_link = item['path'].replace("www.youtube.com", "ssyoutube.com").replace("youtube.com", "ssyoutube.com")
-
         c1, c2, c3 = st.columns(3)
         
         with c1:
-            # الخيار الأول: SaveFrom
-            st.markdown(f'<a href="{ss_link}" target="_blank" class="dl-link savefrom-btn">🟢 SaveFrom (صوت/فيديو)</a>', unsafe_allow_html=True)
+            # زر SaveFrom (يفتح الموقع الرئيسي)
+            st.markdown(f'<a href="https://en.savefrom.net/" target="_blank" class="dl-link savefrom-btn">🟢 SaveFrom (صوت/فيديو)</a>', unsafe_allow_html=True)
         with c2:
-            # الخيار الثاني: Publer (للشورتس)
+            # زر Publer (للشورتس)
             st.markdown(f'<a href="https://publer.io/tools/media-downloader" target="_blank" class="dl-link publer-btn">🔥 Publer (للشورتس)</a>', unsafe_allow_html=True)
         with c3:
-            # الخيار الثالث: Cobalt (الأنظف)
+            # زر Cobalt (الأنظف)
             st.markdown(f'<a href="https://cobalt.tools" target="_blank" class="dl-link cobalt-btn">💎 Cobalt (بدون إعلانات)</a>', unsafe_allow_html=True)
 
-        st.caption("💡 ملاحظة: استخدم **SaveFrom** للفيديوهات العادية، واستخدم **Publer** إذا كان الفيديو **Shorts**.")
+        st.caption("💡 انسخ الرابط من الأعلى، ثم افتح الموقع وألصقه هناك للتحميل فوراً.")
 
         st.markdown("---")
         if st.button("حذف الفيديو 🗑️", key=f"del_{unique_key}"):
