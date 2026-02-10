@@ -44,19 +44,10 @@ def check_password():
 if not check_password():
     st.stop()
 
-# --- 3. التصميم (CSS) ---
+# --- 3. التصميم (CSS) - الحل القاتل لـ arrow_right ---
 st.markdown("""
     <style>
-    /* استيراد الخط */
     @import url('https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap');
-
-    /* 1. إعداد الألوان */
-    :root {
-        --primary-color: #38bdf8;
-        --background-color: #0f172a;
-        --secondary-background-color: #1e293b;
-        --text-color: #ffffff;
-    }
 
     html, body, .stApp {
         background-color: #0f172a !important;
@@ -65,12 +56,56 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* 2. تطبيق الخط */
-    h1, h2, h3, h4, h5, h6, p, label, button, input, textarea, .stMarkdown, div, span {
+    /* تطبيق الخط على النصوص الحقيقية فقط */
+    h1, h2, h3, h4, h5, h6, p, label, button, input, textarea, div, span {
         font-family: 'Almarai', sans-serif !important;
     }
 
-    /* 3. تنسيق الحقول (شفاف وأنيق) */
+    /* ============================================================ */
+    /* 🛠️ الضربة القاضية لنص _arrow_right 🛠️ */
+    /* ============================================================ */
+    
+    /* إخفاء أي محتوى مولد (Pseudo-elements) قد يحمل نص الأيقونة */
+    .streamlit-expanderHeader::before, 
+    .streamlit-expanderHeader::after,
+    [data-testid="stExpanderToggleIcon"]::before,
+    [data-testid="stExpanderToggleIcon"]::after {
+        content: none !important;
+        display: none !important;
+    }
+
+    /* إخفاء حاوية الأيقونة بالكامل وبكل الطرق */
+    [data-testid="stExpanderToggleIcon"], 
+    .streamlit-expanderHeader svg {
+        display: none !important;
+        visibility: hidden !important;
+        width: 0 !important;
+        height: 0 !important;
+        pointer-events: none !important;
+    }
+
+    /* جعل أي نص "تائه" داخل الهيدر يختفي تماماً */
+    .streamlit-expanderHeader {
+        color: transparent !important;
+        font-size: 0px !important;
+        background-color: rgba(30, 41, 59, 0.7) !important;
+        border-radius: 15px !important;
+        padding: 15px 20px !important;
+        margin-bottom: 12px;
+        display: block !important;
+    }
+
+    /* إظهار "العنوان الفعلي" فقط كاستثناء وحيد */
+    .streamlit-expanderHeader p {
+        color: white !important;
+        font-size: 1.1rem !important;
+        font-weight: 700 !important;
+        display: block !important;
+        text-align: right !important;
+        direction: rtl !important;
+    }
+    /* ============================================================ */
+
     .stTextInput input {
         background-color: rgba(255, 255, 255, 0.05) !important;
         color: #ffffff !important;
@@ -85,47 +120,18 @@ st.markdown("""
         color: white !important;
     }
     
-    /* محاذاة النصوص */
     h2, h3, h4, h5, h6, p, label, .stTextInput > label, .stSelectbox > label {
         text-align: right !important;
         direction: rtl !important;
-        color: #ffffff !important;
     }
 
-    /* ============================================================ */
-    /* 🔥 الحل السحري لإخفاء _arrow_right 🔥 */
-    /* ============================================================ */
-    
-    /* الخطوة 1: إخفاء أيقونة النظام تماماً */
-    [data-testid="stExpanderToggleIcon"] {
-        display: none !important;
-    }
-
-    /* الخطوة 2 (الأهم): جعل حجم خط شريط العنوان صفراً! */
-    /* هذا سيخفي أي نص "متسرب" مثل _arrow_right */
-    .streamlit-expanderHeader {
-        font-size: 0px !important;
-        color: transparent !important;
-        
-        /* تنسيق الشكل العام */
-        background-color: rgba(30, 41, 59, 0.7) !important;
-        border: none !important;
-        border-radius: 15px !important;
-        padding: 15px 20px !important;
-        margin-bottom: 12px;
-        display: block !important;
-    }
-
-    /* الخطوة 3: استثناء "عنوان الفيديو" وإظهاره بحجم طبيعي */
-    .streamlit-expanderHeader p {
-        font-size: 1.1rem !important; /* استعادة الحجم للعنوان فقط */
-        color: white !important;      /* استعادة اللون */
-        font-weight: 700 !important;
-        margin: 0 !important;
-        text-align: right !important;
-        width: 100% !important;
-        direction: rtl !important;
-        display: block !important;
+    /* تكبير اللابتوب */
+    @media (min-width: 1000px) {
+        .block-container { max-width: 90% !important; padding-top: 2rem !important; }
+        h1 { font-size: 4rem !important; }
+        p, label { font-size: 1.2rem !important; }
+        .streamlit-expanderHeader p { font-size: 1.5rem !important; }
+        .center-logo { width: 160px !important; }
     }
 
     .streamlit-expanderContent {
@@ -135,51 +141,15 @@ st.markdown("""
         text-align: right !important;
     }
     
-    hr { border-color: rgba(255, 255, 255, 0.1) !important; margin: 1.5em 0 !important; }
-
-    /* أزرار التحميل */
     .dl-link {
         display: block; width: 100%; padding: 15px; margin: 10px 0;
         text-align: center; border-radius: 10px; text-decoration: none !important;
         font-weight: 700; color: white !important; border: 1px solid rgba(255,255,255,0.2);
-        font-size: 1.1rem !important; /* استعادة حجم خط الزر */
     }
     .savefrom-btn { background: linear-gradient(135deg, #10b981, #059669); }
     .cobalt-btn { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-    .dl-link:hover { opacity: 0.9; transform: translateY(-2px); }
 
-    /* اللوغو */
-    .center-logo {
-        display: block; margin-left: auto; margin-right: auto;
-        width: 130px; height: auto; object-fit: contain;
-    }
-
-    /* ============================================================ */
-    /* 🖥️ تكبير اللابتوب (Desktop Zoom) 🖥️ */
-    /* ============================================================ */
-    @media (min-width: 1000px) {
-        .block-container {
-            max-width: 90% !important;
-            padding-top: 3rem !important;
-        }
-        h1 { font-size: 4.5rem !important; margin-bottom: 2rem !important; }
-        
-        /* تكبير النصوص العامة */
-        p, label, .stMarkdown p { font-size: 1.3rem !important; }
-        
-        /* تكبير الحقول */
-        .stTextInput input, .stButton button, div[data-baseweb="select"] {
-            font-size: 1.2rem !important;
-            height: 3.5rem !important;
-        }
-        
-        /* تكبير عنوان الفيديو في البطاقة (مع الحفاظ على الحل السحري) */
-        .streamlit-expanderHeader p { font-size: 1.6rem !important; }
-        
-        /* تكبير اللوغو */
-        .center-logo { width: 180px !important; }
-    }
-    
+    .center-logo { display: block; margin-left: auto; margin-right: auto; width: 130px; height: auto; }
     #MainMenu, footer, header {visibility: hidden;}
     .stTabs [data-baseweb="tab-list"] { justify-content: center; flex-direction: row-reverse; gap: 15px; }
     </style>
@@ -206,7 +176,6 @@ def fix_youtube_url(url):
     elif "youtu.be/" in u:
         video_id = u.split("youtu.be/")[-1].split("?")[0]
         u = f"https://www.youtube.com/watch?v={video_id}"
-    if "instagram.com" in u: u = u.split("?")[0]
     return u
 
 def get_youtube_title(url):
@@ -236,8 +205,8 @@ if logo_file:
     st.markdown(f"""
         <div style="text-align: center; padding-top: 10px;">
             <img src="data:image/png;base64,{img_b64}" class="center-logo">
-            <h1 style="margin-top: 10px; font-size: 3rem; color: white; text-shadow: 0 0 20px rgba(56, 189, 248, 0.5); text-align: center !important;">مكتبة زين</h1>
-            <p style="opacity: 0.9; font-size: 1.2rem; color: #e2e8f0; margin: 5px 0 20px 0; font-weight: 300; text-align: center !important;">مساحتك الخاصة للإبداع</p>
+            <h1 style="margin-top: 10px; font-size: 3rem; color: white; text-shadow: 0 0 20px rgba(56, 189, 248, 0.5);">مكتبة زين</h1>
+            <p style="opacity: 0.9; font-size: 1.2rem; color: #e2e8f0; margin: 5px 0 20px 0; font-weight: 300;">مساحتك الخاصة للإبداع</p>
         </div>
     """, unsafe_allow_html=True)
 else:
@@ -281,7 +250,7 @@ def show_expander_card(item, idx, cat_name):
         else: st.info(f"رابط خارجي: {item['path']}")
 
         st.markdown("---")
-        st.write("##### 1️⃣ انسخ الرابط:")
+        st.write("##### 1️⃣ نسخ الرابط:")
         st_copy_to_clipboard(item['path'], "📋 نسخ", key=f"copy_{unique_key}")
         
         st.write("##### 2️⃣ التحميل:")
