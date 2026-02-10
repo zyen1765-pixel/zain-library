@@ -13,13 +13,13 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. التصميم (CSS) - النسخة الآمنة للأيقونات ---
+# --- 2. التصميم (CSS) - النسخة المانعة للتداخل (Gap Method) ---
 st.markdown("""
     <style>
-    /* استيراد خط تجوال */
+    /* استيراد الخط */
     @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap');
 
-    /* 1. تطبيق الخط على النصوص الصريحة فقط (وليس النجمة العامة) */
+    /* تطبيق الخط العام على النصوص فقط */
     html, body, .stApp {
         background-color: #0f172a !important;
         background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%);
@@ -27,43 +27,56 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* هنا السر: نستهدف الفقرات والعناوين فقط */
+    /* استهداف النصوص */
     h1, h2, h3, h4, h5, h6, p, div, span, label, button, input {
         font-family: 'Tajawal', sans-serif !important;
     }
     
-    /* استثناء الأيقونات من الخط الجديد (مهم جداً!) */
-    .st-emotion-cache-164nlkn, .st-emotion-cache-1p1m4ay, svg, i {
-        font-family: sans-serif !important; 
-    }
+    /* استثناء الأيقونات للحفاظ عليها */
+    svg, i { font-family: sans-serif !important; }
 
-    /* محاذاة النصوص لليمين */
-    h1, h2, h3, h4, h5, h6, p, label, .stTextInput > label, .stSelectbox > label {
+    /* محاذاة عامة لليمين */
+    h1, h2, h3, h4, h5, h6, p, label {
         text-align: right !important;
-        width: 100%;
     }
 
-    /* --- إصلاح البطاقات (Expander) --- */
+    /* --- إصلاح البطاقات (Expander) باستخدام الفراغ الإجباري --- */
     .streamlit-expanderHeader {
         background-color: rgba(30, 41, 59, 0.8) !important;
         border: 1px solid rgba(255,255,255,0.1) !important;
         border-radius: 12px;
         color: white !important;
-        direction: rtl !important; /* اتجاه عربي */
+        
+        /* الترتيب السحري لمنع التداخل */
+        display: flex !important;
+        flex-direction: row-reverse !important; /* النص يمين، السهم يسار */
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 20px !important; /* مسافة إجبارية مستحيل تجاوزها */
+        padding: 15px !important;
     }
 
-    /* النص داخل البطاقة */
+    /* تنسيق النص داخل العنوان */
     .streamlit-expanderHeader p {
         font-size: 1.1rem !important;
         font-weight: 700 !important;
         margin: 0 !important;
-        padding-right: 10px !important; 
+        text-align: right !important;
+        flex-grow: 1 !important; /* يأخذ كل المساحة المتاحة */
+        width: 100% !important;
     }
-    
+
+    /* تنسيق أيقونة السهم */
+    .streamlit-expanderHeader svg {
+        min-width: 24px !important; /* حجز مكان ثابت للسهم */
+        color: #38bdf8 !important;
+    }
+
     /* المحتوى الداخلي */
     .streamlit-expanderContent {
         background-color: rgba(0,0,0,0.3) !important;
         border-radius: 0 0 12px 12px;
+        border-top: none;
         text-align: right !important;
     }
 
@@ -85,7 +98,7 @@ st.markdown("""
         display: block; 
     }
 
-    /* تنسيق زر التحميل */
+    /* زر التحميل */
     .dl-link {
         display: block;
         width: 100%;
