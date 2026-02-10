@@ -223,4 +223,30 @@ def show_expander_card(item, idx, cat_name):
     label = f"📂 {item['title']} | 📅 {item['date']}"
     
     with st.expander(label):
-        if "
+        if "youtube.com" in item['path'] or "youtu.be" in item['path']:
+            st.video(item['path'])
+        else: st.info(f"رابط خارجي: {item['path']}")
+
+        st.markdown("---")
+        st.write("##### 1️⃣ انسخ الرابط:")
+        st_copy_to_clipboard(item['path'], "📋 نسخ", key=f"copy_{unique_key}")
+        
+        st.write("##### 2️⃣ التحميل:")
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown(f'<a href="https://en.savefrom.net/" target="_blank" class="dl-link savefrom-btn">🟢 SaveFrom</a>', unsafe_allow_html=True)
+        with c2:
+            st.markdown(f'<a href="https://cobalt.tools" target="_blank" class="dl-link cobalt-btn">🔵 Cobalt (شورتس)</a>', unsafe_allow_html=True)
+        
+        st.markdown("---")
+        if st.button("حذف 🗑️", key=f"del_{unique_key}"):
+            st.session_state.videos.remove(item)
+            save_to_disk()
+            st.rerun()
+
+for i, cat in enumerate(categories):
+    with tabs[i]:
+        items = [v for v in reversed(st.session_state.videos) if cat == "الكل" or v['category'] == cat]
+        if not items: st.info("لا يوجد محتوى")
+        for idx, vid in enumerate(items):
+            show_expander_card(vid, idx, cat)
