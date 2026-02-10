@@ -6,37 +6,34 @@ import base64
 import requests
 from st_copy_to_clipboard import st_copy_to_clipboard
 
-# --- 1. إعدادات الصفحة والأيقونة الجديدة ---
+# --- 1. إعدادات الصفحة ---
 st.set_page_config(
     page_title="مكتبة زين",
-    page_icon="📚", # تم التغيير إلى كتب
+    page_icon="📚",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. نظام الحماية (كلمة السر) ---
-# قم بتغيير "12345" إلى كلمة السر التي تريدها
-PASSWORD = "9988"
+# --- 2. نظام الحماية ---
+PASSWORD = "9988"  # غيّرها لكلمة السر التي تريدها
 
 def check_password():
-    """Returns `True` if the user had the correct password."""
     if "password_correct" not in st.session_state:
         st.session_state.password_correct = False
-
     if st.session_state.password_correct:
         return True
 
-    # واجهة تسجيل الدخول
+    # تنسيق شاشة القفل لتكون غامقة أيضاً
     st.markdown("""
         <style>
-        .stTextInput input { text-align: center; direction: ltr; }
+        .stApp { background-color: #0f172a; color: white; }
+        .stTextInput input { text-align: center; direction: ltr; color: white; background-color: #1e293b; }
         h1 {text-align: center; color: white;}
         </style>
         """, unsafe_allow_html=True)
     
     st.title("🔒 المكتبة محمية")
-    pwd_input = st.text_input("أدخل كلمة المرور للدخول:", type="password")
-    
+    pwd_input = st.text_input("أدخل كلمة المرور:", type="password")
     if st.button("دخول 🔓"):
         if pwd_input == PASSWORD:
             st.session_state.password_correct = True
@@ -46,51 +43,58 @@ def check_password():
     return False
 
 if not check_password():
-    st.stop() # يوقف التطبيق هنا إذا لم تكن كلمة السر صحيحة
+    st.stop()
 
-# --- 3. التصميم (CSS) ---
+# --- 3. التصميم (CSS) - الإصلاح الشامل للألوان والشورتس ---
 st.markdown("""
     <style>
-    /* استيراد خط المراعي */
     @import url('https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap');
 
+    /* 1. إجبار الوضع الليلي على الصفحة كاملة */
     html, body, .stApp {
-        font-family: 'Almarai', sans-serif;
         background-color: #0f172a !important;
         background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%);
         background-attachment: fixed;
         color: #ffffff !important;
+        font-family: 'Almarai', sans-serif !important;
     }
 
-    h1, h2, h3, h4, h5, h6, p, label, button, input, textarea {
-        font-family: 'Almarai', sans-serif !important;
+    /* 2. تلوين النصوص فقط (واستثناء الأيقونات) */
+    h1, h2, h3, h4, h5, h6, p, label, div[data-testid="stMarkdownContainer"] p {
+        color: #ffffff !important;
         text-align: right;
     }
 
-    /* إخفاء أيقونة السهم */
-    .streamlit-expanderHeader svg, 
-    .streamlit-expanderHeader [data-testid="stExpanderToggleIcon"] {
-        display: none !important;
+    /* 3. إصلاح حقول الإدخال لتظهر في الوضع النهاري */
+    .stTextInput input, .stSelectbox div, .stTextArea textarea {
+        background-color: rgba(255, 255, 255, 0.1) !important; /* خلفية شفافة */
+        color: #ffffff !important; /* نص أبيض */
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    }
+    
+    /* لون النص داخل القوائم المنسدلة */
+    .stSelectbox div[data-baseweb="select"] span {
+        color: #ffffff !important;
     }
 
+    /* 4. إخفاء أيقونة السهم المزعجة */
+    .streamlit-expanderHeader svg { display: none !important; }
+
+    /* 5. تنسيق البطاقات */
     .streamlit-expanderHeader {
-        background-color: rgba(30, 41, 59, 0.8) !important;
+        background-color: rgba(30, 41, 59, 0.9) !important;
         border: 1px solid rgba(255,255,255,0.1) !important;
         border-radius: 12px;
-        color: white !important;
         padding: 15px !important;
-        display: block !important; 
+        display: block !important;
     }
-
     .streamlit-expanderHeader p {
         font-size: 1.1rem !important;
         font-weight: 700 !important;
         margin: 0 !important;
         text-align: right !important;
         width: 100% !important;
-        display: block !important;
     }
-
     .streamlit-expanderContent {
         background-color: rgba(0,0,0,0.3) !important;
         border-radius: 0 0 12px 12px;
@@ -98,56 +102,28 @@ st.markdown("""
         text-align: right !important;
     }
 
-    .stTextInput input {
-        color: white !important;
-        text-align: right !important;
-        direction: rtl !important;
-    }
-    
-    .stSelectbox div[data-baseweb="select"] {
-        direction: rtl !important;
-        text-align: right !important;
-    }
-
-    .app-icon {
-        width: 100px; height: 100px; 
-        object-fit: contain; 
-        background-color: white;
-        border-radius: 20px; 
-        border: 4px solid #ffffff; 
-        box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-        display: block; 
-    }
-
     /* أزرار التحميل */
     .dl-link {
-        display: block;
-        width: 100%;
-        padding: 12px;
-        margin: 8px 0;
-        text-align: center;
-        border-radius: 8px;
-        text-decoration: none !important;
-        font-weight: 700;
-        color: white !important;
-        border: 1px solid rgba(255,255,255,0.2);
+        display: block; width: 100%; padding: 12px; margin: 8px 0;
+        text-align: center; border-radius: 8px; text-decoration: none !important;
+        font-weight: 700; color: white !important; border: 1px solid rgba(255,255,255,0.2);
     }
     .savefrom-btn { background: linear-gradient(135deg, #10b981, #059669); }
     .cobalt-btn { background: linear-gradient(135deg, #3b82f6, #2563eb); }
     
     .dl-link:hover { opacity: 0.9; transform: translateY(-2px); }
 
-    #MainMenu, footer, header {visibility: hidden;}
-    
-    .stTabs [data-baseweb="tab-list"] { 
-        justify-content: center; 
-        flex-direction: row-reverse; 
-        gap: 10px;
+    .app-icon {
+        width: 100px; height: 100px; object-fit: contain; background-color: white;
+        border-radius: 20px; border: 4px solid #ffffff; box-shadow: 0 8px 20px rgba(0,0,0,0.5); display: block; 
     }
+    
+    #MainMenu, footer, header {visibility: hidden;}
+    .stTabs [data-baseweb="tab-list"] { justify-content: center; flex-direction: row-reverse; gap: 10px; }
     </style>
 """, unsafe_allow_html=True)
 
-# --- 4. إدارة الملفات والدوال المساعدة ---
+# --- 4. الدوال المساعدة ---
 DB_FILE = "zain_library.json"
 
 if 'videos' not in st.session_state:
@@ -161,28 +137,31 @@ def save_to_disk():
         json.dump(st.session_state.videos, f, ensure_ascii=False, indent=4)
 
 def fix_youtube_url(url):
+    """تحويل روابط الشورتس والروابط المختصرة لتعمل في المشغل والتحميل"""
     if not url: return ""
     u = url.strip()
-    if "youtu.be/" in u:
-        vid_id = u.split("youtu.be/")[-1].split("?")[0]
-        u = f"https://www.youtube.com/watch?v={vid_id}"
+    # تحويل الشورتس إلى صيغة Watch (وهذا هو الحل لتشغيلها)
+    if "youtube.com/shorts/" in u:
+        video_id = u.split("shorts/")[-1].split("?")[0]
+        u = f"https://www.youtube.com/watch?v={video_id}"
+    elif "youtu.be/" in u:
+        video_id = u.split("youtu.be/")[-1].split("?")[0]
+        u = f"https://www.youtube.com/watch?v={video_id}"
+    
     if "instagram.com" in u: u = u.split("?")[0]
     return u
 
-# دالة جلب عنوان الفيديو (جديد)
 def get_youtube_title(url):
     try:
         clean_url = fix_youtube_url(url)
-        # نستخدم خدمة oEmbed الرسمية من يوتيوب (لا تحتاج مفتاح سري)
         oembed_url = f"https://www.youtube.com/oembed?url={clean_url}&format=json"
         response = requests.get(oembed_url, timeout=5)
         if response.status_code == 200:
             return response.json().get('title')
-    except:
-        pass
+    except: pass
     return None
 
-# --- 5. الهيدر واللوغو ---
+# --- 5. الهيدر ---
 @st.cache_data
 def get_img_as_base64(file):
     try:
@@ -208,32 +187,25 @@ else:
 
 # --- 6. الواجهة ---
 with st.expander("➕ إضافة فيديو جديد", expanded=False):
-    # ترتيب العناصر: الرابط أولاً لكي نجلب العنوان منه
     url_in = st.text_input("رابط الفيديو")
-    
-    # زر لجلب العنوان تلقائياً
-    if st.button("🔍 جلب العنوان تلقائياً"):
+    if st.button("🔍 جلب العنوان"):
         if url_in:
             fetched_title = get_youtube_title(url_in)
             if fetched_title:
                 st.session_state.temp_title = fetched_title
-                st.success("تم جلب العنوان بنجاح!")
-            else:
-                st.warning("لم نتمكن من جلب العنوان، يرجى كتابته يدوياً.")
+                st.success("تم!")
+            else: st.warning("اكتب العنوان يدوياً")
     
-    # استخدام العنوان المجلوب إذا وجد
     default_title = st.session_state.get('temp_title', '')
-    
     c1, c2 = st.columns([1, 1])
     with c2: title_in = st.text_input("العنوان", value=default_title)
     with c1: cat_in = st.selectbox("التصنيف", ["دراسة", "ديني", "تصميم", "ترفيه", "أخرى"])
     
-    if st.button("حفظ الفيديو ✅"):
+    if st.button("حفظ ✅"):
         if title_in and url_in:
-            final_url = fix_youtube_url(url_in)
+            final_url = fix_youtube_url(url_in) # التحويل يتم هنا
             st.session_state.videos.append({"title": title_in, "path": final_url, "category": cat_in, "type": "url", "date": time.strftime("%Y-%m-%d")})
             save_to_disk()
-            # مسح العنوان المؤقت
             if 'temp_title' in st.session_state: del st.session_state.temp_title
             st.rerun()
 
@@ -246,31 +218,24 @@ def show_expander_card(item, idx, cat_name):
     label = f"📂 {item['title']} | 📅 {item['date']}"
     
     with st.expander(label):
+        # هنا نعرض الفيديو، وبما أننا حولناه لـ watch?v= سيعمل 100%
         if "youtube.com" in item['path'] or "youtu.be" in item['path']:
             st.video(item['path'])
         else: st.info(f"رابط خارجي: {item['path']}")
 
         st.markdown("---")
-        
-        # 1. نسخ الرابط
         st.write("##### 1️⃣ انسخ الرابط:")
-        st_copy_to_clipboard(item['path'], "📋 اضغط للنسخ", key=f"copy_{unique_key}")
+        st_copy_to_clipboard(item['path'], "📋 نسخ", key=f"copy_{unique_key}")
         
-        # 2. أزرار التحميل
-        st.write("##### 2️⃣ اختر التحميل المناسب:")
-        
+        st.write("##### 2️⃣ التحميل:")
         c1, c2 = st.columns(2)
         with c1:
-            # SaveFrom (للفيديوهات الطويلة)
-            st.markdown(f'<a href="https://en.savefrom.net/" target="_blank" class="dl-link savefrom-btn">🟢 SaveFrom (فيديوهات)</a>', unsafe_allow_html=True)
+            st.markdown(f'<a href="https://en.savefrom.net/" target="_blank" class="dl-link savefrom-btn">🟢 SaveFrom</a>', unsafe_allow_html=True)
         with c2:
-            # Cobalt (للشورتس - أفضل حل حالياً)
             st.markdown(f'<a href="https://cobalt.tools" target="_blank" class="dl-link cobalt-btn">🔵 Cobalt (شورتس)</a>', unsafe_allow_html=True)
         
-        st.caption("💡 نصيحة: إذا كان الفيديو **Shorts** استخدم الزر الأزرق (Cobalt).")
-
         st.markdown("---")
-        if st.button("حذف الفيديو 🗑️", key=f"del_{unique_key}"):
+        if st.button("حذف 🗑️", key=f"del_{unique_key}"):
             st.session_state.videos.remove(item)
             save_to_disk()
             st.rerun()
