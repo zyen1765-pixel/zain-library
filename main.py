@@ -13,11 +13,11 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. التصميم (CSS) - النسخة المانعة للتداخل (Gap Method) ---
+# --- 2. التصميم (CSS) - خط المراعي الجديد ---
 st.markdown("""
     <style>
-    /* استيراد الخط */
-    @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap');
+    /* استيراد خط "المراعي" */
+    @import url('https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap');
 
     /* تطبيق الخط العام على النصوص فقط */
     html, body, .stApp {
@@ -27,12 +27,12 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* استهداف النصوص */
+    /* استهداف النصوص لتغيير الخط */
     h1, h2, h3, h4, h5, h6, p, div, span, label, button, input {
-        font-family: 'Tajawal', sans-serif !important;
+        font-family: 'Almarai', sans-serif !important;
     }
     
-    /* استثناء الأيقونات للحفاظ عليها */
+    /* استثناء الأيقونات (مهم جداً لعدم اختفاء السهم) */
     svg, i { font-family: sans-serif !important; }
 
     /* محاذاة عامة لليمين */
@@ -40,36 +40,36 @@ st.markdown("""
         text-align: right !important;
     }
 
-    /* --- إصلاح البطاقات (Expander) باستخدام الفراغ الإجباري --- */
+    /* --- إصلاح البطاقات (Expander) --- */
     .streamlit-expanderHeader {
         background-color: rgba(30, 41, 59, 0.8) !important;
         border: 1px solid rgba(255,255,255,0.1) !important;
         border-radius: 12px;
         color: white !important;
         
-        /* الترتيب السحري لمنع التداخل */
+        /* ترتيب العناصر: فليكس مع اتجاه عربي */
         display: flex !important;
-        flex-direction: row-reverse !important; /* النص يمين، السهم يسار */
+        flex-direction: row-reverse !important; 
         align-items: center !important;
         justify-content: space-between !important;
-        gap: 20px !important; /* مسافة إجبارية مستحيل تجاوزها */
-        padding: 15px !important;
+        padding: 10px 15px !important;
     }
 
     /* تنسيق النص داخل العنوان */
     .streamlit-expanderHeader p {
-        font-size: 1.1rem !important;
+        font-size: 1rem !important; /* حجم خط مناسب */
         font-weight: 700 !important;
         margin: 0 !important;
         text-align: right !important;
-        flex-grow: 1 !important; /* يأخذ كل المساحة المتاحة */
-        width: 100% !important;
+        flex: 1 !important; /* يأخذ المساحة المتبقية */
+        padding-left: 15px !important; /* مسافة بين النص والسهم */
     }
 
     /* تنسيق أيقونة السهم */
     .streamlit-expanderHeader svg {
-        min-width: 24px !important; /* حجز مكان ثابت للسهم */
+        min-width: 20px !important;
         color: #38bdf8 !important;
+        transform: rotate(180deg); /* تدوير السهم ليناسب العربية */
     }
 
     /* المحتوى الداخلي */
@@ -89,12 +89,12 @@ st.markdown("""
 
     /* تنسيق اللوغو */
     .app-icon {
-        width: 110px; height: 110px; 
+        width: 100px; height: 100px; 
         object-fit: contain; 
         background-color: white;
-        border-radius: 25px; 
+        border-radius: 20px; 
         border: 4px solid #ffffff; 
-        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.5);
         display: block; 
     }
 
