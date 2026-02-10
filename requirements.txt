@@ -1,3 +1,2 @@
 streamlit
-requests
-Pillow
+st-copy-to-clipboard
