@@ -15,7 +15,7 @@ st.set_page_config(
 )
 
 # --- 2. نظام الحماية ---
-PASSWORD = "12345"  # كلمة السر
+PASSWORD = "12345"
 
 def check_password():
     if "password_correct" not in st.session_state:
@@ -23,7 +23,6 @@ def check_password():
     if st.session_state.password_correct:
         return True
 
-    # تنسيق شاشة القفل (داكنة إجبارياً)
     st.markdown("""
         <style>
         .stApp { background-color: #0f172a !important; color: white !important; }
@@ -45,13 +44,13 @@ def check_password():
 if not check_password():
     st.stop()
 
-# --- 3. التصميم (CSS) - النسخة المحسنة للابتوب ---
+# --- 3. التصميم (CSS) - الإصلاح الشامل ---
 st.markdown("""
     <style>
-    /* استيراد خط المراعي */
+    /* استيراد الخط */
     @import url('https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap');
 
-    /* 1. الحل الجذري للألوان (تثبيت متغيرات النظام) */
+    /* 1. تثبيت الألوان (Dark Mode Force) */
     :root {
         --primary-color: #38bdf8;
         --background-color: #0f172a;
@@ -60,7 +59,6 @@ st.markdown("""
         --font: 'Almarai', sans-serif;
     }
 
-    /* 2. إجبار الخلفية الداكنة مهما كان الوضع */
     html, body, .stApp {
         background-color: #0f172a !important;
         background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%);
@@ -68,75 +66,62 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* 3. تطبيق الخط */
+    /* 2. تطبيق الخط بذكاء (على النصوص فقط) */
     h1, h2, h3, h4, h5, h6, p, label, button, input, textarea, .stMarkdown, div, span {
         font-family: 'Almarai', sans-serif !important;
     }
-    
-    /* منع الخط عن الأيقونات */
-    i, .material-icons, [data-testid="stExpanderToggleIcon"] {
+
+    /* 3. منع الخط عن الأيقونات (حل مشكلة arrow_right) */
+    i, svg, .material-icons, [data-testid="stExpanderToggleIcon"] {
         font-family: sans-serif !important;
+        display: none !important; /* إخفاء السهم نهائياً */
     }
 
-    /* 4. محاذاة النصوص (يمين) */
-    h2, h3, h4, h5, h6, p, label, .stTextInput > label, .stSelectbox > label {
-        text-align: right !important;
-        direction: rtl !important;
-        color: #ffffff !important;
-    }
-
-    /* 5. تنسيق الحقول (إجبار اللون الداكن للنصوص والخلفيات) */
-    .stTextInput input, .stTextArea textarea, .stSelectbox div {
-        background-color: #1e293b !important; /* لون كحلي غامق للحقول */
+    /* 4. إزالة المربعات الغريبة (جعل الحقول شفافة) */
+    .stTextInput input {
+        background-color: rgba(255, 255, 255, 0.05) !important; /* شفاف */
         color: #ffffff !important;
         border: 1px solid rgba(255, 255, 255, 0.2) !important;
         direction: rtl !important;
         text-align: right !important;
     }
     
-    /* لون النص داخل القوائم */
-    div[data-baseweb="select"] span {
+    /* إصلاح القوائم المنسدلة (إزالة الخلفية المزدوجة) */
+    div[data-baseweb="select"] > div {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        border-color: rgba(255, 255, 255, 0.2) !important;
+        color: white !important;
+    }
+    
+    /* ضمان أن النصوص يمين */
+    h2, h3, h4, h5, h6, p, label, .stTextInput > label, .stSelectbox > label {
+        text-align: right !important;
+        direction: rtl !important;
         color: #ffffff !important;
     }
 
     /* ============================================================ */
     /* 🖥️ قسم التكبير الخاص باللابتوب (Desktop Zoom) 🖥️ */
     /* ============================================================ */
-    
     @media (min-width: 1000px) {
-        /* تكبير الحاوية الرئيسية */
         .block-container {
-            max-width: 90% !important; /* استغلال عرض الشاشة */
+            max-width: 90% !important;
             padding-top: 3rem !important;
         }
-
-        /* تضخيم العناوين */
         h1 { font-size: 4.5rem !important; margin-bottom: 2rem !important; }
-        
-        /* تضخيم النصوص العادية والتسميات */
         p, label, .stMarkdown p { font-size: 1.3rem !important; }
-        
-        /* تضخيم حقول الإدخال والأزرار */
         .stTextInput input, .stButton button, div[data-baseweb="select"] {
             font-size: 1.2rem !important;
-            height: 3.5rem !important; /* حقول أطول */
+            height: 3.5rem !important;
         }
-        
-        /* تضخيم عناوين الفيديوهات في القائمة */
-        .streamlit-expanderHeader p {
-            font-size: 1.5rem !important; 
-        }
-
-        /* تكبير اللوغو للابتوب */
+        .streamlit-expanderHeader p { font-size: 1.5rem !important; }
         .center-logo { width: 180px !important; }
     }
     /* ============================================================ */
 
-    /* تنسيق البطاقات (Expander) */
-    [data-testid="stExpanderToggleIcon"] { display: none !important; }
-    
+    /* تنسيق البطاقات (نظيف جداً) */
     .streamlit-expanderHeader {
-        background-color: rgba(30, 41, 59, 0.8) !important;
+        background-color: rgba(30, 41, 59, 0.7) !important;
         border: none !important;
         border-radius: 15px !important;
         padding: 15px 20px !important;
@@ -176,13 +161,11 @@ st.markdown("""
     /* اللوغو */
     .center-logo {
         display: block; margin-left: auto; margin-right: auto;
-        width: 130px; /* حجم الموبايل */
-        height: auto; object-fit: contain;
+        width: 130px; height: auto; object-fit: contain;
     }
     
     #MainMenu, footer, header {visibility: hidden;}
     .stTabs [data-baseweb="tab-list"] { justify-content: center; flex-direction: row-reverse; gap: 15px; }
-    .stTabs [data-baseweb="tab"] { font-size: 1.2rem !important; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -274,8 +257,6 @@ tabs = st.tabs(categories)
 
 def show_expander_card(item, idx, cat_name):
     unique_key = f"{cat_name}_{idx}"
-    
-    # التعديل النهائي للأيقونة: فيديو فقط 🎥
     label = f"🎥 {item['title']}"
     
     with st.expander(label):
