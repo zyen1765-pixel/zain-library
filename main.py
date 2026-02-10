@@ -13,13 +13,13 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. التصميم (CSS) - خط المراعي الجديد ---
+# --- 2. التصميم (CSS) - إخفاء السهم نهائياً ---
 st.markdown("""
     <style>
-    /* استيراد خط "المراعي" */
+    /* استيراد خط المراعي */
     @import url('https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap');
 
-    /* تطبيق الخط العام على النصوص فقط */
+    /* تطبيق الخط العام */
     html, body, .stApp {
         background-color: #0f172a !important;
         background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%);
@@ -27,49 +27,38 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* استهداف النصوص لتغيير الخط */
+    /* استهداف النصوص */
     h1, h2, h3, h4, h5, h6, p, div, span, label, button, input {
         font-family: 'Almarai', sans-serif !important;
     }
-    
-    /* استثناء الأيقونات (مهم جداً لعدم اختفاء السهم) */
-    svg, i { font-family: sans-serif !important; }
 
     /* محاذاة عامة لليمين */
     h1, h2, h3, h4, h5, h6, p, label {
         text-align: right !important;
     }
 
-    /* --- إصلاح البطاقات (Expander) --- */
+    /* --- تنسيق البطاقات (Expander) --- */
     .streamlit-expanderHeader {
         background-color: rgba(30, 41, 59, 0.8) !important;
         border: 1px solid rgba(255,255,255,0.1) !important;
         border-radius: 12px;
         color: white !important;
-        
-        /* ترتيب العناصر: فليكس مع اتجاه عربي */
-        display: flex !important;
-        flex-direction: row-reverse !important; 
-        align-items: center !important;
-        justify-content: space-between !important;
-        padding: 10px 15px !important;
+        direction: rtl !important;
+        padding: 15px !important;
+    }
+
+    /* 🚫 حذف السهم نهائياً (الحل الجذري) 🚫 */
+    .streamlit-expanderHeader svg {
+        display: none !important;
     }
 
     /* تنسيق النص داخل العنوان */
     .streamlit-expanderHeader p {
-        font-size: 1rem !important; /* حجم خط مناسب */
+        font-size: 1.1rem !important;
         font-weight: 700 !important;
         margin: 0 !important;
         text-align: right !important;
-        flex: 1 !important; /* يأخذ المساحة المتبقية */
-        padding-left: 15px !important; /* مسافة بين النص والسهم */
-    }
-
-    /* تنسيق أيقونة السهم */
-    .streamlit-expanderHeader svg {
-        min-width: 20px !important;
-        color: #38bdf8 !important;
-        transform: rotate(180deg); /* تدوير السهم ليناسب العربية */
+        width: 100% !important;
     }
 
     /* المحتوى الداخلي */
@@ -192,8 +181,8 @@ def show_expander_card(item, idx, cat_name):
     icon = "🎥"
     if item['type'] == 'local': icon = "📂"
     
-    # تحسين عرض العنوان والتاريخ
-    label = f"{item['title']} | 📅 {item['date']}"
+    # دمجنا أيقونة "مجلد" مع النص لتكون بديلاً عن السهم
+    label = f"📂 {item['title']} | 📅 {item['date']}"
     
     with st.expander(label):
         if "youtube.com" in item['path'] or "youtu.be" in item['path']:
