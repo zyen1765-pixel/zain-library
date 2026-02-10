@@ -3,8 +3,7 @@ import os
 import json
 import time
 import base64
-import shutil
-import yt_dlp
+import requests
 from PIL import Image
 
 # --- 1. إعدادات الصفحة ---
@@ -12,7 +11,7 @@ st.set_page_config(
     page_title="مكتبة زين",
     page_icon="💎",
     layout="wide",
-    initial_sidebar_state="expanded" # فتح القائمة الجانبية تلقائياً
+    initial_sidebar_state="collapsed"
 )
 
 # --- 2. التصميم (CSS) ---
@@ -34,17 +33,11 @@ st.markdown("""
         color: white !important; direction: rtl;
     }
     .streamlit-expanderContent { background-color: rgba(0,0,0,0.2); border-radius: 0 0 10px 10px; border-top: none; }
-    #MainMenu, footer, header {visibility: hidden;}
-    .stTabs [data-baseweb="tab-list"] { justify-content: center; flex-direction: row-reverse; }
     </style>
 """, unsafe_allow_html=True)
 
-# --- 3. إعداد المجلدات ---
+# --- 3. إدارة الملفات ---
 DB_FILE = "zain_library.json"
-TEMP_DIR = "/tmp/zain_downloads"
-COOKIES_FILE = "/tmp/cookies.txt" 
-
-if not os.path.exists(TEMP_DIR): os.makedirs(TEMP_DIR, exist_ok=True)
 
 if 'videos' not in st.session_state:
     if os.path.exists(DB_FILE):
@@ -63,45 +56,64 @@ def clean_url(url):
     if "instagram.com" in u: u = u.split("?")[0]
     return u
 
-# --- 4. دالة التحميل (yt-dlp + Cookies) ---
-def download_media(url, format_type, cookie_path=None):
-    # تنظيف المجلد
-    try:
-        if os.path.exists(TEMP_DIR): shutil.rmtree(TEMP_DIR)
-        os.makedirs(TEMP_DIR, exist_ok=True)
-    except: pass
-
-    # إعدادات yt-dlp
-    ydl_opts = {
-        'outtmpl': f'{TEMP_DIR}/%(title)s.%(ext)s',
-        'quiet': True, 'no_warnings': True, 'restrictfilenames': True,
-        'socket_timeout': 60,
-    }
-
-    # 🔥 تفعيل الكوكيز إذا وجد الملف
-    if cookie_path and os.path.exists(cookie_path):
-        ydl_opts['cookiefile'] = cookie_path
+# --- 4. دالة التحميل عبر الـ API (المنقذة) ---
+def get_download_link(url, mode):
+    # قائمة بسيرفرات Cobalt تعمل حالياً (بدائل في حال التوقف)
+    # هذه السيرفرات تعمل كوسيط لتخطي حظر يوتيوب
+    INSTANCES = [
+        "https://api.cobalt.tools",        # السيرفر الرئيسي
+        "https://cobalt.kwiatekmiki.pl",   # سيرفر بديل 1
+        "https://cobalt.arms.nu",          # سيرفر بديل 2
+        "https://cobalt.moshibox.org",     # سيرفر بديل 3
+        "https://cobalt.wafflehacker.io"   # سيرفر بديل 4
+    ]
     
-    if format_type == 'mp3':
-        ydl_opts['format'] = 'bestaudio/best'
-        ydl_opts['postprocessors'] = [{'key': 'FFmpegExtractAudio','preferredcodec': 'mp3','preferredquality': '192'}]
-    elif format_type == '360':
-        ydl_opts['format'] = 'bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best'
-    elif format_type == '720':
-        ydl_opts['format'] = 'bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best'
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+    }
+    
+    # إعدادات الطلب
+    payload = {
+        "url": url,
+        "filenamePattern": "basic"
+    }
+    
+    if mode == "audio":
+        payload["isAudioOnly"] = True
+    else:
+        payload["vQuality"] = "720"
+        
+    last_error = ""
 
-    try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=True)
-            filename = ydl.prepare_filename(info)
-            if format_type == 'mp3':
-                base, _ = os.path.splitext(filename)
-                filename = base + ".mp3"
-            return filename, info.get('title', 'video'), None
-    except Exception as e:
-        return None, None, str(e)
+    # تجربة السيرفرات واحداً تلو الآخر
+    for base_url in INSTANCES:
+        try:
+            api_endpoint = f"{base_url}/api/json"
+            # طلب الرابط من السيرفر
+            response = requests.post(api_endpoint, json=payload, headers=headers, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # التحقق من نجاح العملية
+                if "url" in data:
+                    return data["url"], None # نجحنا! أعد الرابط المباشر
+                elif "status" in data and data["status"] == "error":
+                    last_error = data.get("text", "Unknown error")
+                    continue # جرب السيرفر التالي
+            else:
+                last_error = f"HTTP {response.status_code}"
+                continue
+                
+        except Exception as e:
+            last_error = str(e)
+            continue
+            
+    return None, f"فشلت جميع المحاولات. تأكد من الرابط. ({last_error})"
 
-# --- 5. الهيدر ---
+# --- 5. الهيدر واللوغو ---
 @st.cache_data
 def get_img_as_base64(file):
     try:
@@ -125,26 +137,7 @@ if os.path.exists(logo_path):
 else:
     st.markdown("<h1 style='text-align:center;'>مكتبة زين</h1>", unsafe_allow_html=True)
 
-# --- 6. الشريط الجانبي (منطقة الكوكيز) ---
-with st.sidebar:
-    st.header("🔐 تفعيل التحميل")
-    st.markdown("""
-    **لحل مشكلة حظر يوتيوب (403 Error):**
-    1. حمل ملف `cookies.txt` من متصفحك.
-    2. ارفعه هنا مرة واحدة.
-    """)
-    uploaded_cookies = st.file_uploader("ارفع ملف cookies.txt هنا 👇", type=["txt", "text"])
-    
-    cookie_ready = False
-    if uploaded_cookies is not None:
-        with open(COOKIES_FILE, "wb") as f:
-            f.write(uploaded_cookies.getbuffer())
-        st.success("✅ تم تفعيل الكوكيز! يمكنك التحميل الآن.")
-        cookie_ready = True
-    else:
-        st.warning("⚠️ التحميل قد يفشل بدون ملف الكوكيز.")
-
-# --- 7. الواجهة ---
+# --- 6. الواجهة ---
 with st.expander("➕ إضافة فيديو جديد", expanded=False):
     c1, c2 = st.columns([1, 1])
     with c2: title_in = st.text_input("العنوان")
@@ -171,38 +164,28 @@ def show_expander_card(item, idx, cat_name):
             st.video(item['path'])
         else: st.info(f"رابط خارجي: {item['path']}")
 
-        st.markdown("<p style='color:#38bdf8; font-size:0.9rem; margin-top:10px;'>⬇️ تحميل بصيغة:</p>", unsafe_allow_html=True)
-        c1, c2, c3 = st.columns(3)
+        st.markdown("<p style='color:#38bdf8; font-size:0.9rem; margin-top:10px;'>⬇️ تحميل مباشر (سريع):</p>", unsafe_allow_html=True)
+        c1, c2 = st.columns(2)
         
-        # استخدام الكوكيز إذا توفرت
-        c_path = COOKIES_FILE if cookie_ready else None
-
+        # أزرار التحميل
         with c1:
-            if st.button("🎵 MP3", key=f"btn_mp3_{unique_key}"):
-                with st.spinner("جاري التحميل..."):
-                    fpath, title, err = download_media(item['path'], 'mp3', c_path)
-                    if fpath:
-                        with open(fpath, "rb") as file:
-                            st.download_button("💾 حفظ", file, file_name=f"{title}.mp3", mime="audio/mpeg", key=f"dl_mp3_{unique_key}")
-                    else: st.error(f"خطأ: {err}")
-
+            if st.button("🎵 تحميل صوت (MP3)", key=f"btn_mp3_{unique_key}"):
+                with st.spinner("جاري جلب الرابط..."):
+                    direct_link, err = get_download_link(item['path'], "audio")
+                    if direct_link:
+                        # هنا نعطيه الرابط المباشر للتحميل فوراً
+                        st.markdown(f'<a href="{direct_link}" download="{item["title"]}.mp3" style="background-color: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: block; text-align: center;">💾 اضغط هنا لبدء التحميل</a>', unsafe_allow_html=True)
+                    else:
+                        st.error(f"خطأ: {err}")
+        
         with c2:
-            if st.button("📺 360p", key=f"btn_360_{unique_key}"):
-                with st.spinner("جاري التحميل..."):
-                    fpath, title, err = download_media(item['path'], '360', c_path)
-                    if fpath:
-                        with open(fpath, "rb") as file:
-                            st.download_button("💾 حفظ", file, file_name=f"{title}_360.mp4", mime="video/mp4", key=f"dl_360_{unique_key}")
-                    else: st.error(f"خطأ: {err}")
-
-        with c3:
-            if st.button("HD 720p", key=f"btn_720_{unique_key}"):
-                with st.spinner("جاري التحميل..."):
-                    fpath, title, err = download_media(item['path'], '720', c_path)
-                    if fpath:
-                        with open(fpath, "rb") as file:
-                            st.download_button("💾 حفظ", file, file_name=f"{title}_720.mp4", mime="video/mp4", key=f"dl_720_{unique_key}")
-                    else: st.error(f"خطأ: {err}")
+            if st.button("📺 تحميل فيديو (MP4)", key=f"btn_vid_{unique_key}"):
+                with st.spinner("جاري جلب الرابط..."):
+                    direct_link, err = get_download_link(item['path'], "video")
+                    if direct_link:
+                        st.markdown(f'<a href="{direct_link}" download="{item["title"]}.mp4" style="background-color: #38bdf8; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: block; text-align: center;">💾 اضغط هنا لبدء التحميل</a>', unsafe_allow_html=True)
+                    else:
+                        st.error(f"خطأ: {err}")
 
         st.markdown("---")
         if st.button("حذف الفيديو 🗑️", key=f"del_{unique_key}"):
