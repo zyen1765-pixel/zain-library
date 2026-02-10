@@ -44,7 +44,7 @@ def check_password():
 if not check_password():
     st.stop()
 
-# --- 3. التصميم (CSS) - إصلاح المستطيلات البيضاء والخطوط ---
+# --- 3. التصميم (CSS) - النسخة المضادة للألوان البيضاء ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap');
@@ -55,36 +55,37 @@ st.markdown("""
         background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%);
         background-attachment: fixed;
         color: #ffffff !important;
-    }
-
-    /* 2. تطبيق الخط على النصوص فقط (منع تداخل arrow_right) */
-    h1, h2, h3, h4, h5, h6, p, label, button, .stMarkdown p, .stButton button {
         font-family: 'Almarai', sans-serif !important;
     }
-    
-    /* 3. حذف السهم وأي نصوص برمجية مرافقة له نهائياً */
+
+    /* 2. حذف السهم وأي نصوص برمجية مرافقة له نهائياً */
     [data-testid="stExpanderToggleIcon"], svg, .streamlit-expanderHeader::after {
         display: none !important;
         visibility: hidden !important;
-        content: none !important;
     }
 
-    /* 4. 🔥 إصلاح المستطيلات البيضاء على اللابتوب 🔥 */
-    /* إجبار لون الخلفية والنص لجميع حقول الإدخال */
-    input, textarea, [data-baseweb="select"] > div, button[kind="secondary"] {
-        background-color: rgba(255, 255, 255, 0.1) !important;
-        color: white !important;
-        border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        -webkit-text-fill-color: white !important; /* لضمان ظهور النص في المتصفحات */
+    /* 3. 🔥 الحل النهائي للمستطيلات البيضاء (Laptop Fix) 🔥 */
+    /* استهداف حقول الإدخال ومنع المتصفح من تغيير ألوانها */
+    input, textarea, [data-baseweb="select"] > div {
+        background-color: #1e293b !important; /* لون كحلي غامق صلب */
+        color: #ffffff !important; /* نص أبيض صلب */
+        border: 1px solid #334155 !important;
+        -webkit-text-fill-color: #ffffff !important; /* إجبار المتصفح على تلوين النص */
     }
-    
-    /* منع تغير اللون عند التركيز (Focus) */
-    input:focus, [data-baseweb="select"] > div:focus {
-        background-color: rgba(255, 255, 255, 0.15) !important;
+
+    /* إصلاح لون النص عند الكتابة */
+    .stTextInput input, .stTextArea textarea {
+        color: white !important;
+        background-color: #1e293b !important;
+    }
+
+    /* إصلاح القوائم المنسدلة على اللابتوب */
+    div[data-baseweb="select"] {
+        background-color: #1e293b !important;
         color: white !important;
     }
 
-    /* 5. تنسيق البطاقات (Expander) */
+    /* 4. تنسيق البطاقات (Expander) */
     .streamlit-expanderHeader {
         background-color: rgba(30, 41, 59, 0.7) !important;
         border: none !important;
@@ -101,13 +102,8 @@ st.markdown("""
         direction: rtl !important;
         color: white !important;
     }
-    .streamlit-expanderContent {
-        background-color: transparent !important;
-        border: none !important;
-        text-align: right !important;
-    }
 
-    /* 6. 💻 تكبير الخط للابتوب 💻 */
+    /* 5. 💻 تكبير الخط للابتوب 💻 */
     @media (min-width: 1000px) {
         .block-container { max-width: 85% !important; padding-top: 1rem !important; }
         h1 { font-size: 4rem !important; }
@@ -173,7 +169,6 @@ def get_img_as_base64(file):
     except: return None
 
 logo_file = None
-# نبحث عن الاسم الذي رفعته
 if os.path.exists("zain_logo_new.png"): logo_file = "zain_logo_new.png"
 elif os.path.exists("zain_logo.png"): logo_file = "zain_logo.png"
 elif os.path.exists("zain_logo.jpg"): logo_file = "zain_logo.jpg"
@@ -192,7 +187,7 @@ else:
 
 # --- 6. الواجهة الرئيسية ---
 with st.expander("➕ إضافة فيديو جديد", expanded=False):
-    url_in = st.text_input("رابط الفيديو")
+    url_in = st.text_input("رابط الفيديو", key="url_input")
     if st.button("🔍 جلب العنوان"):
         if url_in:
             fetched_title = get_youtube_title(url_in)
@@ -202,8 +197,8 @@ with st.expander("➕ إضافة فيديو جديد", expanded=False):
             else: st.warning("اكتب العنوان يدوياً")
     
     default_title = st.session_state.get('temp_title', '')
-    title_in = st.text_input("العنوان", value=default_title)
-    cat_in = st.selectbox("التصنيف", ["دراسة", "ديني", "تصميم", "ترفيه", "أخرى"])
+    title_in = st.text_input("العنوان", value=default_title, key="title_input")
+    cat_in = st.selectbox("التصنيف", ["دراسة", "ديني", "تصميم", "ترفيه", "أخرى"], key="cat_input")
     
     if st.button("حفظ الفيديو ✅"):
         if title_in and url_in:
