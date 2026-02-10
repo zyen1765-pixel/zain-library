@@ -3,7 +3,7 @@ import os
 import json
 import time
 import base64
-import requests # المكتبة الجديدة للاتصال بالسيرفر الوسيط
+import requests
 from PIL import Image
 
 # --- 1. إعدادات الصفحة ---
@@ -57,17 +57,22 @@ def clean_url(url):
     if "instagram.com" in u: u = u.split("?")[0]
     return u
 
-# --- 4. دالة التحميل السحرية (Cobalt API) ---
+# --- 4. دالة التحميل الذكية (متعددة السيرفرات) ---
 def download_media_via_api(url, mode):
-    # السيرفر الوسيط (Cobalt)
-    api_url = "https://co.wuk.sh/api/json"
+    # قائمة سيرفرات بديلة (إذا تعطل واحد يعمل الآخر)
+    COBALT_INSTANCES = [
+        "https://api.cobalt.tools",
+        "https://cobalt.kwiatekmiki.pl",
+        "https://cobalt.mywaifu.best",
+        "https://cobalt.q11.ba"
+    ]
     
     headers = {
         "Accept": "application/json",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.0.0 Safari/537.36"
     }
 
-    # إعدادات الطلب حسب النوع
     data = {
         "url": url,
         "vQuality": "720" if mode == "video" else "max",
@@ -76,30 +81,33 @@ def download_media_via_api(url, mode):
     
     if mode == "audio":
         data["isAudioOnly"] = True
-        data["aFormat"] = "mp3"
     
-    try:
-        # 1. إرسال الرابط للسيرفر الوسيط
-        response = requests.post(api_url, json=data, headers=headers)
-        response_data = response.json()
-
-        if "url" not in response_data:
-            return None, "فشل السيرفر في جلب الرابط (قد يكون محمياً أو محظوراً)"
-
-        download_link = response_data["url"]
-        
-        # 2. تحميل الملف الناتج من الرابط المباشر
-        file_response = requests.get(download_link, stream=True)
-        
-        # تحديد الاسم والامتداد
-        ext = "mp3" if mode == "audio" else "mp4"
-        filename = f"downloaded_media.{ext}"
-        
-        # حفظ الملف مؤقتاً في الذاكرة للتحميل
-        return file_response.content, None
-
-    except Exception as e:
-        return None, str(e)
+    last_error = ""
+    
+    # حلقة تكرار تجرب السيرفرات واحداً تلو الآخر
+    for base_url in COBALT_INSTANCES:
+        api_url = f"{base_url}/api/json"
+        try:
+            # محاولة الاتصال بالسيرفر الحالي
+            response = requests.post(api_url, json=data, headers=headers, timeout=15)
+            
+            if response.status_code == 200:
+                resp_json = response.json()
+                if "url" in resp_json:
+                    # نجحنا! وجدنا رابط التحميل
+                    download_link = resp_json["url"]
+                    file_response = requests.get(download_link, stream=True)
+                    
+                    # تحديد الامتداد
+                    ext = "mp3" if mode == "audio" else "mp4"
+                    # إرجاع الملف فوراً
+                    return file_response.content, None
+            
+        except Exception as e:
+            last_error = str(e)
+            continue # انتقل للسيرفر التالي في القائمة
+            
+    return None, f"عذراً، جميع السيرفرات مشغولة حالياً. حاول بعد قليل. (Error: {last_error})"
 
 # --- 5. الهيدر واللوغو ---
 @st.cache_data
@@ -157,22 +165,22 @@ def show_expander_card(item, idx, cat_name):
         c1, c2 = st.columns(2)
         
         with c1:
-            if st.button("🎵 MP3", key=f"btn_mp3_{unique_key}"):
-                with st.spinner("جاري الاتصال بالسيرفر السحري..."):
+            if st.button("🎵 تحميل صوت (MP3)", key=f"btn_mp3_{unique_key}"):
+                with st.spinner("جاري الاتصال بأفضل سيرفر متاح..."):
                     file_content, err = download_media_via_api(item['path'], "audio")
                     if file_content:
                         st.download_button("💾 اضغط للحفظ", file_content, file_name=f"{item['title']}.mp3", mime="audio/mpeg", key=f"dl_mp3_{unique_key}")
                     else:
-                        st.error(f"خطأ: {err}")
+                        st.error(f"{err}")
         
         with c2:
-            if st.button("📺 MP4 (Video)", key=f"btn_vid_{unique_key}"):
-                with st.spinner("جاري الاتصال بالسيرفر السحري..."):
+            if st.button("📺 تحميل فيديو (MP4)", key=f"btn_vid_{unique_key}"):
+                with st.spinner("جاري الاتصال بأفضل سيرفر متاح..."):
                     file_content, err = download_media_via_api(item['path'], "video")
                     if file_content:
                         st.download_button("💾 اضغط للحفظ", file_content, file_name=f"{item['title']}.mp4", mime="video/mp4", key=f"dl_vid_{unique_key}")
                     else:
-                        st.error(f"خطأ: {err}")
+                        st.error(f"{err}")
 
         st.markdown("---")
         if st.button("حذف الفيديو 🗑️", key=f"del_{unique_key}"):
