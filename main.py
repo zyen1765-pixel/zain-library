@@ -13,18 +13,13 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. التصميم (CSS) - النسخة المصححة للأيقونات ---
+# --- 2. التصميم (CSS) - النسخة الآمنة للأيقونات ---
 st.markdown("""
     <style>
     /* استيراد خط تجوال */
     @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap');
 
-    /* تطبيق الخط على النصوص فقط (وليس الأيقونات) */
-    html, body, [class*="css"], .stApp, p, h1, h2, h3, h4, h5, h6, label, div, span, button, input {
-        font-family: 'Tajawal', sans-serif !important;
-    }
-
-    /* الخلفية واللون الأساسي */
+    /* 1. تطبيق الخط على النصوص الصريحة فقط (وليس النجمة العامة) */
     html, body, .stApp {
         background-color: #0f172a !important;
         background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%);
@@ -32,48 +27,42 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* محاذاة العناوين */
-    h1, h2, h3, h4, h5, h6, p, label {
-        text-align: right !important;
-        color: white !important;
+    /* هنا السر: نستهدف الفقرات والعناوين فقط */
+    h1, h2, h3, h4, h5, h6, p, div, span, label, button, input {
+        font-family: 'Tajawal', sans-serif !important;
+    }
+    
+    /* استثناء الأيقونات من الخط الجديد (مهم جداً!) */
+    .st-emotion-cache-164nlkn, .st-emotion-cache-1p1m4ay, svg, i {
+        font-family: sans-serif !important; 
     }
 
-    /* --- إصلاح البطاقات (Expander) بشكل جذري --- */
+    /* محاذاة النصوص لليمين */
+    h1, h2, h3, h4, h5, h6, p, label, .stTextInput > label, .stSelectbox > label {
+        text-align: right !important;
+        width: 100%;
+    }
+
+    /* --- إصلاح البطاقات (Expander) --- */
     .streamlit-expanderHeader {
         background-color: rgba(30, 41, 59, 0.8) !important;
         border: 1px solid rgba(255,255,255,0.1) !important;
         border-radius: 12px;
         color: white !important;
-        
-        /* الترتيب السحري: فليكس عكسي */
-        display: flex !important;
-        flex-direction: row-reverse !important; /* النص يمين، السهم يسار */
-        justify-content: space-between !important;
-        align-items: center !important;
-        padding: 15px !important;
+        direction: rtl !important; /* اتجاه عربي */
     }
 
-    /* إصلاح النص داخل العنوان */
+    /* النص داخل البطاقة */
     .streamlit-expanderHeader p {
         font-size: 1.1rem !important;
         font-weight: 700 !important;
         margin: 0 !important;
-        color: white !important;
-        flex-grow: 1 !important; /* يأخذ المساحة المتبقية */
+        padding-right: 10px !important; 
     }
     
-    /* إصلاح أيقونة السهم لكي لا تتأثر بالخط */
-    .streamlit-expanderHeader svg {
-        margin-right: 10px !important;
-        color: #38bdf8 !important; /* لون سماوي للسهم */
-        transform: scale(1.2);
-    }
-
-    /* المحتوى الداخلي للبطاقة */
+    /* المحتوى الداخلي */
     .streamlit-expanderContent {
         background-color: rgba(0,0,0,0.3) !important;
-        border: 1px solid rgba(255,255,255,0.05);
-        border-top: none;
         border-radius: 0 0 12px 12px;
         text-align: right !important;
     }
@@ -83,12 +72,6 @@ st.markdown("""
         color: white !important;
         text-align: right !important;
         direction: rtl !important;
-    }
-    
-    /* تنسيق القوائم المنسدلة */
-    .stSelectbox div[data-baseweb="select"] {
-        direction: rtl !important;
-        text-align: right !important;
     }
 
     /* تنسيق اللوغو */
@@ -106,23 +89,20 @@ st.markdown("""
     .dl-link {
         display: block;
         width: 100%;
-        padding: 14px;
+        padding: 12px;
         margin: 8px 0;
         text-align: center;
-        border-radius: 10px;
+        border-radius: 8px;
         text-decoration: none !important;
-        font-weight: 800;
+        font-weight: 700;
         color: white !important;
-        background: linear-gradient(135deg, #10b981, #047857);
+        background: linear-gradient(135deg, #10b981, #059669);
         border: 1px solid rgba(255,255,255,0.2);
-        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
     }
-    .dl-link:hover { opacity: 0.95; transform: translateY(-3px); }
+    .dl-link:hover { opacity: 0.9; transform: translateY(-2px); }
 
-    /* إخفاء عناصر النظام */
     #MainMenu, footer, header {visibility: hidden;}
     
-    /* تنسيق التبويبات */
     .stTabs [data-baseweb="tab-list"] { 
         justify-content: center; 
         flex-direction: row-reverse; 
