@@ -13,14 +13,16 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. التصميم (CSS) - النسخة المصححة (بدون تداخل) ---
+# --- 2. التصميم (CSS) - النسخة المصححة للتداخل ---
 st.markdown("""
     <style>
     /* استيراد الخط */
     @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap');
 
     /* تطبيق الخط العام */
-    * { font-family: 'Tajawal', sans-serif !important; }
+    * { 
+        font-family: 'Tajawal', sans-serif !important; 
+    }
 
     /* الخلفية واللون الأساسي */
     html, body, .stApp {
@@ -30,32 +32,39 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* إصلاح محاذاة العناوين والنصوص */
+    /* محاذاة العناوين */
     h1, h2, h3, h4, h5, h6, p, label {
         text-align: right !important;
         color: white !important;
+        line-height: 1.6 !important; /* تحسين تباعد الأسطر لمنع التداخل */
     }
 
-    /* --- إصلاح التداخل في القوائم المنسدلة (Expander) --- */
+    /* --- إصلاح التداخل في العناوين (Expander) --- */
+    /* استهداف الحاوية الرئيسية للعنوان */
     .streamlit-expanderHeader {
         background-color: rgba(30, 41, 59, 0.8) !important;
         border: 1px solid rgba(255,255,255,0.1) !important;
         border-radius: 12px;
         color: white !important;
-        font-weight: 700 !important;
-        direction: rtl !important; /* إجبار الاتجاه من اليمين لليسار */
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-    
-    /* منع الأيقونة من الركوب فوق النص */
-    .streamlit-expanderHeader p {
-        margin: 0 !important;
-        padding-right: 10px !important; /* مسافة بين النص والأيقونة */
-        font-size: 1.1rem;
+        direction: rtl !important;
     }
 
+    /* استهداف النص داخل العنوان بدقة */
+    .streamlit-expanderHeader p, .streamlit-expanderHeader span {
+        font-size: 1.1rem !important;
+        font-weight: 700 !important;
+        margin: 0 !important;
+        padding-right: 35px !important; /* مسافة أمان كبيرة لعدم لمس السهم */
+        padding-left: 10px !important;
+        line-height: 1.8 !important; /* تباعد مريح */
+    }
+    
+    /* أيقونة السهم في الـ Expander */
+    .streamlit-expanderHeader svg {
+        margin-left: 10px !important; /* إبعاد السهم قليلاً */
+    }
+
+    /* المحتوى الداخلي للبطاقة */
     .streamlit-expanderContent {
         background-color: rgba(0,0,0,0.3) !important;
         border: 1px solid rgba(255,255,255,0.05);
@@ -69,6 +78,12 @@ st.markdown("""
         color: white !important;
         text-align: right !important;
         direction: rtl !important;
+    }
+    
+    /* تنسيق القوائم المنسدلة */
+    .stSelectbox div[data-baseweb="select"] {
+        direction: rtl !important;
+        text-align: right !important;
     }
 
     /* تنسيق اللوغو */
@@ -99,10 +114,10 @@ st.markdown("""
     }
     .dl-link:hover { opacity: 0.95; transform: translateY(-3px); }
 
-    /* إخفاء عناصر النظام المزعجة */
+    /* إخفاء عناصر النظام */
     #MainMenu, footer, header {visibility: hidden;}
     
-    /* إصلاح تبويبات التصنيف */
+    /* تنسيق التبويبات */
     .stTabs [data-baseweb="tab-list"] { 
         justify-content: center; 
         flex-direction: row-reverse; 
