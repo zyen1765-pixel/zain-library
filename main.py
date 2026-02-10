@@ -44,99 +44,109 @@ def check_password():
 if not check_password():
     st.stop()
 
-# --- 3. التصميم (CSS) - النسخة المصفاة من أي تداخل ---
-st.markdown("""
+# --- 3. إدارة "الوضع" (ليلي/نهاري) ---
+if 'theme_mode' not in st.session_state:
+    st.session_state.theme_mode = 'dark' # البداية بالوضع الليلي الافتراضي
+
+# وضع زر التبديل في الأعلى
+col_mode, col_empty = st.columns([0.1, 0.9])
+with col_mode:
+    if st.button("🌓"):
+        st.session_state.theme_mode = 'light' if st.session_state.theme_mode == 'dark' else 'dark'
+        st.rerun()
+
+# إعدادات الألوان حسب الوضع المختار
+if st.session_state.theme_mode == 'dark':
+    bg_color = "#0f172a"
+    gradient = "radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%)"
+    text_color = "#ffffff"
+    input_bg = "rgba(255, 255, 255, 0.05)"
+    header_bg = "rgba(30, 41, 59, 0.7)"
+else:
+    bg_color = "#f8fafc"
+    gradient = "radial-gradient(circle at 50% 0%, #e2e8f0 0%, #f8fafc 70%)"
+    text_color = "#1e293b"
+    input_bg = "rgba(0, 0, 0, 0.05)"
+    header_bg = "rgba(226, 232, 240, 0.8)"
+
+# --- 4. التصميم (CSS) المحسن ---
+st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap');
 
-    /* 1. الخلفية والألوان */
-    html, body, .stApp {
-        background-color: #0f172a !important;
-        background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%);
+    html, body, .stApp {{
+        background-color: {bg_color} !important;
+        background-image: {gradient};
         background-attachment: fixed;
-        color: #ffffff !important;
-    }
+        color: {text_color} !important;
+    }}
 
-    /* 2. تطبيق الخط على النصوص الصريحة فقط (هذا يحل مشكلة arrow_right) */
-    h1, h2, h3, h4, h5, h6, p, label, button, .stMarkdown p, .stButton button, .stTextInput input {
+    h1, h2, h3, h4, h5, h6, p, label, button, .stMarkdown p, .stButton button, .stTextInput input {{
         font-family: 'Almarai', sans-serif !important;
-    }
+        color: {text_color} !important;
+    }}
     
-    /* 3. إخفاء أيقونة السهم تماماً وبشكل صامت */
-    [data-testid="stExpanderToggleIcon"], svg {
+    [data-testid="stExpanderToggleIcon"], svg {{
         display: none !important;
         visibility: hidden !important;
-    }
+    }}
 
-    /* 4. تنسيق البطاقات (Expander) */
-    .streamlit-expanderHeader {
-        background-color: rgba(30, 41, 59, 0.7) !important;
+    .streamlit-expanderHeader {{
+        background-color: {header_bg} !important;
         border: none !important;
         border-radius: 15px !important;
         padding: 15px 20px !important;
         margin-bottom: 12px;
         display: block !important;
-    }
+    }}
 
-    /* النص داخل البطاقة */
-    .streamlit-expanderHeader p {
+    .streamlit-expanderHeader p {{
         font-size: 1.1rem !important;
         font-weight: 700 !important;
         margin: 0 !important;
         text-align: right !important;
         width: 100% !important;
         direction: rtl !important;
-        color: white !important;
-    }
+    }}
 
-    /* 5. تنسيق الحقول */
-    .stTextInput input {
-        background-color: rgba(255, 255, 255, 0.05) !important;
-        color: #ffffff !important;
-        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    .stTextInput input, div[data-baseweb="select"] > div {{
+        background-color: {input_bg} !important;
+        color: {text_color} !important;
+        border: 1px solid rgba(128, 128, 128, 0.2) !important;
         direction: rtl !important;
         text-align: right !important;
-    }
-    
-    div[data-baseweb="select"] > div {
-        background-color: rgba(255, 255, 255, 0.05) !important;
-        border-color: rgba(255, 255, 255, 0.2) !important;
-        color: white !important;
-    }
+    }}
 
-    /* -------------------------------------------------------- */
-    /* 💻 تكبير الخط للابتوب (Desktop Mode) 💻 */
-    @media (min-width: 1000px) {
-        .block-container { max-width: 90% !important; padding-top: 2rem !important; }
-        h1 { font-size: 4rem !important; }
-        p, label, .stButton button { font-size: 1.25rem !important; }
-        .streamlit-expanderHeader p { font-size: 1.5rem !important; }
-        .center-logo { width: 160px !important; }
-    }
-    /* -------------------------------------------------------- */
+    @media (min-width: 1000px) {{
+        .block-container {{ max-width: 90% !important; padding-top: 1rem !important; }}
+        h1 {{ font-size: 4rem !important; }}
+        p, label, .stButton button {{ font-size: 1.25rem !important; }}
+        .streamlit-expanderHeader p {{ font-size: 1.5rem !important; }}
+        .center-logo {{ width: 160px !important; }}
+    }}
 
-    .streamlit-expanderContent {
+    .streamlit-expanderContent {{
         background-color: transparent !important;
         border: none !important;
         padding: 15px 25px !important;
         text-align: right !important;
-    }
+    }}
     
-    .dl-link {
+    .dl-link {{
         display: block; width: 100%; padding: 15px; margin: 10px 0;
         text-align: center; border-radius: 10px; text-decoration: none !important;
         font-weight: 700; color: white !important; border: 1px solid rgba(255,255,255,0.2);
-    }
-    .savefrom-btn { background: linear-gradient(135deg, #10b981, #059669); }
-    .cobalt-btn { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    }}
+    .savefrom-btn {{ background: linear-gradient(135deg, #10b981, #059669); }}
+    .cobalt-btn {{ background: linear-gradient(135deg, #3b82f6, #2563eb); }}
 
-    .center-logo { display: block; margin-left: auto; margin-right: auto; width: 130px; height: auto; }
-    #MainMenu, footer, header {visibility: hidden;}
-    .stTabs [data-baseweb="tab-list"] { justify-content: center; flex-direction: row-reverse; gap: 15px; }
+    .center-logo {{ display: block; margin-left: auto; margin-right: auto; width: 130px; height: auto; }}
+    #MainMenu, footer, header {{visibility: hidden;}}
+    .stTabs [data-baseweb="tab-list"] {{ justify-content: center; flex-direction: row-reverse; gap: 15px; }}
     </style>
 """, unsafe_allow_html=True)
 
-# --- 4. إدارة الملفات ---
+# --- 5. إدارة الملفات ---
 DB_FILE = "zain_library.json"
 if 'videos' not in st.session_state:
     if os.path.exists(DB_FILE):
@@ -169,7 +179,7 @@ def get_youtube_title(url):
     except: pass
     return None
 
-# --- 5. الهيدر ---
+# --- 6. الهيدر ---
 @st.cache_data
 def get_img_as_base64(file):
     try:
@@ -186,14 +196,14 @@ if logo_file:
     st.markdown(f"""
         <div style="text-align: center; padding-top: 10px;">
             <img src="data:image/png;base64,{img_b64}" class="center-logo">
-            <h1 style="margin-top: 10px; font-size: 3rem; color: white; text-shadow: 0 0 20px rgba(56, 189, 248, 0.5);">مكتبة زين</h1>
-            <p style="opacity: 0.9; font-size: 1.2rem; color: #e2e8f0; margin: 5px 0 20px 0; font-weight: 300;">مساحتك الخاصة للإبداع</p>
+            <h1 style="margin-top: 10px; font-size: 3rem; color: {text_color}; text-shadow: 0 0 20px rgba(56, 189, 248, 0.3);">مكتبة زين</h1>
+            <p style="opacity: 0.9; font-size: 1.2rem; margin: 5px 0 20px 0; font-weight: 300;">مساحتك الخاصة للإبداع</p>
         </div>
     """, unsafe_allow_html=True)
 else:
-    st.markdown("<h1 style='text-align:center;'>مكتبة زين</h1>", unsafe_allow_html=True)
+    st.markdown(f"<h1 style='text-align:center;'>مكتبة زين</h1>", unsafe_allow_html=True)
 
-# --- 6. الواجهة ---
+# --- 7. الواجهة ---
 with st.expander("➕ إضافة فيديو جديد", expanded=False):
     url_in = st.text_input("رابط الفيديو")
     if st.button("🔍 جلب العنوان"):
