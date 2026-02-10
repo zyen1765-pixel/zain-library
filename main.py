@@ -1,10 +1,8 @@
 import streamlit as st
-import os
 import json
+import os
 import time
 import base64
-import requests
-from PIL import Image
 
 # --- 1. إعدادات الصفحة ---
 st.set_page_config(
@@ -33,6 +31,25 @@ st.markdown("""
         color: white !important; direction: rtl;
     }
     .streamlit-expanderContent { background-color: rgba(0,0,0,0.2); border-radius: 0 0 10px 10px; border-top: none; }
+    
+    /* تنسيق أزرار التحميل الخارجية */
+    .dl-btn {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        margin: 5px 0;
+        text-align: center;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+    .btn-y2mate { background-color: #ff0000; color: white !important; }
+    .btn-savefrom { background-color: #00b75a; color: white !important; }
+    .dl-btn:hover { opacity: 0.8; transform: scale(1.02); }
+    
+    #MainMenu, footer, header {visibility: hidden;}
+    .stTabs [data-baseweb="tab-list"] { justify-content: center; flex-direction: row-reverse; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -56,64 +73,7 @@ def clean_url(url):
     if "instagram.com" in u: u = u.split("?")[0]
     return u
 
-# --- 4. دالة التحميل عبر الـ API (المنقذة) ---
-def get_download_link(url, mode):
-    # قائمة بسيرفرات Cobalt تعمل حالياً (بدائل في حال التوقف)
-    # هذه السيرفرات تعمل كوسيط لتخطي حظر يوتيوب
-    INSTANCES = [
-        "https://api.cobalt.tools",        # السيرفر الرئيسي
-        "https://cobalt.kwiatekmiki.pl",   # سيرفر بديل 1
-        "https://cobalt.arms.nu",          # سيرفر بديل 2
-        "https://cobalt.moshibox.org",     # سيرفر بديل 3
-        "https://cobalt.wafflehacker.io"   # سيرفر بديل 4
-    ]
-    
-    headers = {
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-    }
-    
-    # إعدادات الطلب
-    payload = {
-        "url": url,
-        "filenamePattern": "basic"
-    }
-    
-    if mode == "audio":
-        payload["isAudioOnly"] = True
-    else:
-        payload["vQuality"] = "720"
-        
-    last_error = ""
-
-    # تجربة السيرفرات واحداً تلو الآخر
-    for base_url in INSTANCES:
-        try:
-            api_endpoint = f"{base_url}/api/json"
-            # طلب الرابط من السيرفر
-            response = requests.post(api_endpoint, json=payload, headers=headers, timeout=10)
-            
-            if response.status_code == 200:
-                data = response.json()
-                
-                # التحقق من نجاح العملية
-                if "url" in data:
-                    return data["url"], None # نجحنا! أعد الرابط المباشر
-                elif "status" in data and data["status"] == "error":
-                    last_error = data.get("text", "Unknown error")
-                    continue # جرب السيرفر التالي
-            else:
-                last_error = f"HTTP {response.status_code}"
-                continue
-                
-        except Exception as e:
-            last_error = str(e)
-            continue
-            
-    return None, f"فشلت جميع المحاولات. تأكد من الرابط. ({last_error})"
-
-# --- 5. الهيدر واللوغو ---
+# --- 4. الهيدر واللوغو ---
 @st.cache_data
 def get_img_as_base64(file):
     try:
@@ -137,7 +97,7 @@ if os.path.exists(logo_path):
 else:
     st.markdown("<h1 style='text-align:center;'>مكتبة زين</h1>", unsafe_allow_html=True)
 
-# --- 6. الواجهة ---
+# --- 5. الواجهة ---
 with st.expander("➕ إضافة فيديو جديد", expanded=False):
     c1, c2 = st.columns([1, 1])
     with c2: title_in = st.text_input("العنوان")
@@ -164,28 +124,27 @@ def show_expander_card(item, idx, cat_name):
             st.video(item['path'])
         else: st.info(f"رابط خارجي: {item['path']}")
 
-        st.markdown("<p style='color:#38bdf8; font-size:0.9rem; margin-top:10px;'>⬇️ تحميل مباشر (سريع):</p>", unsafe_allow_html=True)
+        st.markdown("<p style='color:#38bdf8; font-size:0.9rem; margin-top:10px;'>⬇️ خيارات التحميل السريع:</p>", unsafe_allow_html=True)
+        
+        # روابط ذكية للمواقع الخارجية
+        # موقع Y2Mate (ممتاز للفيديو والصوت)
+        y2mate_link = f"https://www.y2mate.com/youtube/{item['path'].split('v=')[-1] if 'v=' in item['path'] else ''}"
+        
+        # موقع SaveFrom (سريع جداً)
+        savefrom_link = item['path'].replace("youtube.com", "ssyoutube.com")
+        
+        # موقع Cobalt (بدون إعلانات - نظيف)
+        cobalt_link = "https://cobalt.tools"
+
         c1, c2 = st.columns(2)
         
-        # أزرار التحميل
         with c1:
-            if st.button("🎵 تحميل صوت (MP3)", key=f"btn_mp3_{unique_key}"):
-                with st.spinner("جاري جلب الرابط..."):
-                    direct_link, err = get_download_link(item['path'], "audio")
-                    if direct_link:
-                        # هنا نعطيه الرابط المباشر للتحميل فوراً
-                        st.markdown(f'<a href="{direct_link}" download="{item["title"]}.mp3" style="background-color: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: block; text-align: center;">💾 اضغط هنا لبدء التحميل</a>', unsafe_allow_html=True)
-                    else:
-                        st.error(f"خطأ: {err}")
+            st.markdown(f'<a href="{y2mate_link}" target="_blank" class="dl-btn btn-y2mate">🚀 تحميل عبر Y2Mate</a>', unsafe_allow_html=True)
         
         with c2:
-            if st.button("📺 تحميل فيديو (MP4)", key=f"btn_vid_{unique_key}"):
-                with st.spinner("جاري جلب الرابط..."):
-                    direct_link, err = get_download_link(item['path'], "video")
-                    if direct_link:
-                        st.markdown(f'<a href="{direct_link}" download="{item["title"]}.mp4" style="background-color: #38bdf8; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: block; text-align: center;">💾 اضغط هنا لبدء التحميل</a>', unsafe_allow_html=True)
-                    else:
-                        st.error(f"خطأ: {err}")
+            st.markdown(f'<a href="{savefrom_link}" target="_blank" class="dl-btn btn-savefrom">🟢 تحميل عبر SSYoutube</a>', unsafe_allow_html=True)
+            
+        st.caption("ملاحظة: سيفتح التحميل في صفحة جديدة جاهزاً.")
 
         st.markdown("---")
         if st.button("حذف الفيديو 🗑️", key=f"del_{unique_key}"):
