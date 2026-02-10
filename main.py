@@ -25,9 +25,9 @@ def check_password():
 
     st.markdown("""
         <style>
-        .stApp { background-color: #0f172a; color: white; font-family: sans-serif; }
+        .stApp { background-color: #0f172a; color: white; }
         .stTextInput input { text-align: center; direction: ltr; color: white; background-color: #1e293b; border: 1px solid #334155; }
-        h1 {text-align: center; color: white;}
+        h1 {text-align: center; color: white; font-family: sans-serif;}
         </style>
         """, unsafe_allow_html=True)
     
@@ -44,28 +44,34 @@ def check_password():
 if not check_password():
     st.stop()
 
-# --- 3. التصميم (CSS) ---
+# --- 3. التصميم (CSS) - الإصلاح الجذري للخطوط ---
 st.markdown("""
     <style>
     /* استيراد خط المراعي */
     @import url('https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap');
 
-    /* تطبيق الخط والألوان */
+    /* 1. إعداد الخلفية والألوان الأساسية (بدون إجبار الخط هنا) */
     html, body, .stApp {
         background-color: #0f172a !important;
         background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%);
         background-attachment: fixed;
         color: #ffffff !important;
-        font-family: 'Almarai', sans-serif !important;
     }
 
-    /* النصوص */
-    h1, h2, h3, h4, h5, h6, p, label, div, span, button, input {
+    /* 2. تطبيق خط المراعي على النصوص الصريحة *فقط* */
+    h1, h2, h3, h4, h5, h6, p, label, button, input, textarea, .stMarkdown {
         font-family: 'Almarai', sans-serif !important;
     }
     
+    /* 3. منع الخط عن الأيقونات والرموز (هذا يحل مشكلة arrow_right) */
+    i, .material-icons, [data-testid="stExpanderToggleIcon"] {
+        font-family: sans-serif !important;
+    }
+
+    /* تنسيق النصوص */
     h1, h2, h3, h4, h5, h6, p, label {
         color: #ffffff !important;
+        text-align: right;
     }
 
     /* حقول الإدخال */
@@ -79,27 +85,22 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* --- الحل الجذري لمشكلة arrow_right --- */
-    /* استهداف العنصر الحاوي للأيقونة وإخفاؤه تماماً */
+    /* --- إصلاح البطاقات (Expander) --- */
+    
+    /* إخفاء السهم تماماً (الحاوية والأيقونة) */
     [data-testid="stExpanderToggleIcon"] {
         display: none !important;
         visibility: hidden !important;
-        width: 0 !important;
     }
     
-    /* إخفاء أي عنصر SVG داخل الهيدر */
-    .streamlit-expanderHeader svg {
-        display: none !important;
-    }
-
-    /* تنسيق البطاقات (Expander) */
     .streamlit-expanderHeader {
         background-color: rgba(30, 41, 59, 0.7) !important;
         border: none !important;
         border-radius: 15px !important;
         padding: 15px 20px !important;
         margin-bottom: 10px;
-        display: block !important; /* إلغاء الفليكس لتجنب المشاكل */
+        display: block !important;
+        position: relative;
     }
 
     .streamlit-expanderHeader p {
@@ -108,7 +109,7 @@ st.markdown("""
         margin: 0 !important;
         text-align: right !important;
         width: 100% !important;
-        padding-right: 0 !important; /* إلغاء الحشو الزائد */
+        padding-right: 0 !important;
     }
 
     .streamlit-expanderContent {
@@ -182,7 +183,7 @@ def get_youtube_title(url):
     except: pass
     return None
 
-# --- 5. الهيدر ---
+# --- 5. الهيدر (اللوغو الجديد) ---
 @st.cache_data
 def get_img_as_base64(file):
     try:
@@ -190,6 +191,7 @@ def get_img_as_base64(file):
         return base64.b64encode(data).decode()
     except: return None
 
+# نبحث عن اللوغو الجديد أولاً
 logo_file = None
 if os.path.exists("zain_logo_new.png"): logo_file = "zain_logo_new.png"
 elif os.path.exists("zain_logo.png"): logo_file = "zain_logo.png"
