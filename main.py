@@ -44,13 +44,13 @@ def check_password():
 if not check_password():
     st.stop()
 
-# --- 3. التصميم (CSS) - الإصلاح الجذري للخطوط ---
+# --- 3. التصميم (CSS) - إصلاح المربعات والاتجاه ---
 st.markdown("""
     <style>
     /* استيراد خط المراعي */
     @import url('https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap');
 
-    /* 1. إعداد الخلفية والألوان الأساسية (بدون إجبار الخط هنا) */
+    /* 1. إعداد الخلفية والألوان */
     html, body, .stApp {
         background-color: #0f172a !important;
         background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%);
@@ -58,40 +58,49 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* 2. تطبيق خط المراعي على النصوص الصريحة *فقط* */
-    h1, h2, h3, h4, h5, h6, p, label, button, input, textarea, .stMarkdown {
+    /* 2. تطبيق الخط على النصوص */
+    h1, h2, h3, h4, h5, h6, p, label, button, input, textarea, .stMarkdown, div {
         font-family: 'Almarai', sans-serif !important;
     }
     
-    /* 3. منع الخط عن الأيقونات والرموز (هذا يحل مشكلة arrow_right) */
+    /* منع الخط عن الأيقونات */
     i, .material-icons, [data-testid="stExpanderToggleIcon"] {
         font-family: sans-serif !important;
     }
 
-    /* تنسيق النصوص */
-    h1, h2, h3, h4, h5, h6, p, label {
+    /* 3. محاذاة النصوص (يمين) ما عدا العنوان الرئيسي */
+    h2, h3, h4, h5, h6, p, label, .stTextInput > label, .stSelectbox > label {
+        text-align: right !important;
+        direction: rtl !important;
         color: #ffffff !important;
-        text-align: right;
     }
 
-    /* حقول الإدخال */
-    .stTextInput input, .stSelectbox div, .stTextArea textarea {
-        background-color: rgba(255, 255, 255, 0.1) !important;
+    /* 4. إصلاح حقول الإدخال والقوائم (إزالة المربعات الغريبة) */
+    /* استهداف الحقل النصي فقط */
+    .stTextInput input {
+        background-color: rgba(255, 255, 255, 0.05) !important;
         color: #ffffff !important;
         border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        direction: rtl;
+        direction: rtl !important;
+        text-align: right !important;
     }
-    .stSelectbox div[data-baseweb="select"] span {
+    
+    /* استهداف القائمة المنسدلة بدقة لمنع التشوهات */
+    div[data-baseweb="select"] > div {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        border-color: rgba(255, 255, 255, 0.2) !important;
+        color: white !important;
+        direction: rtl !important;
+    }
+    
+    /* لون النص داخل القائمة */
+    div[data-baseweb="select"] span {
         color: #ffffff !important;
     }
 
-    /* --- إصلاح البطاقات (Expander) --- */
-    
-    /* إخفاء السهم تماماً (الحاوية والأيقونة) */
-    [data-testid="stExpanderToggleIcon"] {
-        display: none !important;
-        visibility: hidden !important;
-    }
+    /* --- تنسيق البطاقات (Expander) --- */
+    /* إخفاء السهم */
+    [data-testid="stExpanderToggleIcon"] { display: none !important; }
     
     .streamlit-expanderHeader {
         background-color: rgba(30, 41, 59, 0.7) !important;
@@ -100,7 +109,6 @@ st.markdown("""
         padding: 15px 20px !important;
         margin-bottom: 10px;
         display: block !important;
-        position: relative;
     }
 
     .streamlit-expanderHeader p {
@@ -110,6 +118,7 @@ st.markdown("""
         text-align: right !important;
         width: 100% !important;
         padding-right: 0 !important;
+        direction: rtl !important;
     }
 
     .streamlit-expanderContent {
@@ -119,6 +128,7 @@ st.markdown("""
         text-align: right !important;
     }
     
+    /* الفواصل */
     hr {
         border-color: rgba(255, 255, 255, 0.1) !important;
         margin: 1.5em 0 !important;
@@ -134,14 +144,10 @@ st.markdown("""
     .cobalt-btn { background: linear-gradient(135deg, #3b82f6, #2563eb); }
     .dl-link:hover { opacity: 0.9; transform: translateY(-2px); }
 
-    /* تنسيق اللوغو */
+    /* تنسيق اللوغو (في الوسط) */
     .center-logo {
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
-        width: 130px; 
-        height: auto;
-        object-fit: contain;
+        display: block; margin-left: auto; margin-right: auto;
+        width: 130px; height: auto; object-fit: contain;
     }
     
     #MainMenu, footer, header {visibility: hidden;}
@@ -183,7 +189,7 @@ def get_youtube_title(url):
     except: pass
     return None
 
-# --- 5. الهيدر (اللوغو الجديد) ---
+# --- 5. الهيدر (اللوغو الجديد والوسط) ---
 @st.cache_data
 def get_img_as_base64(file):
     try:
@@ -191,18 +197,18 @@ def get_img_as_base64(file):
         return base64.b64encode(data).decode()
     except: return None
 
-# نبحث عن اللوغو الجديد أولاً
 logo_file = None
 if os.path.exists("zain_logo_new.png"): logo_file = "zain_logo_new.png"
 elif os.path.exists("zain_logo.png"): logo_file = "zain_logo.png"
 
 if logo_file:
     img_b64 = get_img_as_base64(logo_file)
+    # هنا العنوان واللوغو في المنتصف (center)
     st.markdown(f"""
         <div style="text-align: center; padding-top: 20px;">
             <img src="data:image/png;base64,{img_b64}" class="center-logo">
-            <h1 style="margin-top: 15px; font-size: 3rem; color: white; text-shadow: 0 0 20px rgba(56, 189, 248, 0.5);">مكتبة زين</h1>
-            <p style="opacity: 0.9; font-size: 1.2rem; color: #e2e8f0; margin: 5px 0 30px 0; font-weight: 300;">مساحتك الخاصة للإبداع</p>
+            <h1 style="margin-top: 15px; font-size: 3rem; color: white; text-shadow: 0 0 20px rgba(56, 189, 248, 0.5); text-align: center !important;">مكتبة زين</h1>
+            <p style="opacity: 0.9; font-size: 1.2rem; color: #e2e8f0; margin: 5px 0 30px 0; font-weight: 300; text-align: center !important;">مساحتك الخاصة للإبداع</p>
         </div>
     """, unsafe_allow_html=True)
 else:
@@ -210,6 +216,7 @@ else:
 
 # --- 6. الواجهة ---
 with st.expander("➕ إضافة فيديو جديد", expanded=False):
+    # الحقول هنا ستكون RTL (يمين)
     url_in = st.text_input("رابط الفيديو")
     if st.button("🔍 جلب العنوان"):
         if url_in:
@@ -238,7 +245,9 @@ tabs = st.tabs(categories)
 
 def show_expander_card(item, idx, cat_name):
     unique_key = f"{cat_name}_{idx}"
-    label = f"📂 {item['title']} | 📅 {item['date']}"
+    
+    # التغيير المطلوب: أيقونة فيديو فقط 🎥
+    label = f"🎥 {item['title']}"
     
     with st.expander(label):
         if "youtube.com" in item['path'] or "youtu.be" in item['path']:
@@ -256,6 +265,9 @@ def show_expander_card(item, idx, cat_name):
         with c2:
             st.markdown(f'<a href="https://cobalt.tools" target="_blank" class="dl-link cobalt-btn">🔵 Cobalt (شورتس)</a>', unsafe_allow_html=True)
         
+        # عرض التاريخ كمعلومة إضافية صغيرة في الأسفل
+        st.caption(f"📅 تاريخ الإضافة: {item['date']}")
+
         st.markdown("---")
         if st.button("حذف 🗑️", key=f"del_{unique_key}"):
             st.session_state.videos.remove(item)
