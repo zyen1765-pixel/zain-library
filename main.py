@@ -1,9 +1,10 @@
 import streamlit as st
+import json
 import os
 import time
 import base64
-import subprocess # لتشغيل ffmpeg
-from pytubefix import YouTube # المكتبة الجديدة
+import yt_dlp
+import shutil
 from PIL import Image
 
 # --- 1. إعدادات الصفحة ---
@@ -14,16 +15,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. دوال مساعدة ---
-@st.cache_data
-def get_img_as_base64(file):
-    try:
-        with open(file, "rb") as f:
-            data = f.read()
-        return base64.b64encode(data).decode()
-    except: return None
-
-# --- 3. التصميم (CSS) ---
+# --- 2. التصميم (CSS) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap');
@@ -47,12 +39,12 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 4. إعداد المجلدات ---
+# --- 3. إدارة الملفات ---
 DB_FILE = "zain_library.json"
-TEMP_DOWNLOADS = "/tmp/zain_downloads" # استخدام مجلد المؤقتات في السيرفر
+TEMP_DOWNLOADS = "/tmp/zain_downloads" # مجلد مؤقت آمن
 
-if not os.path.exists(TEMP_DOWNLOADS): os.makedirs(TEMP_DOWNLOADS)
-import json
+if not os.path.exists(TEMP_DOWNLOADS): os.makedirs(TEMP_DOWNLOADS, exist_ok=True)
+
 if 'videos' not in st.session_state:
     if os.path.exists(DB_FILE):
         try: st.session_state.videos = json.load(open(DB_FILE, "r", encoding="utf-8"))
@@ -70,49 +62,57 @@ def clean_url(url):
     if "instagram.com" in u: u = u.split("?")[0]
     return u
 
-# --- 5. دالة التحميل الجديدة (pytubefix) ---
+# --- 4. دالة التحميل (حيلة الآيفون iOS) ---
 def download_media(url, format_type):
+    # تنظيف المجلد المؤقت أولاً
     try:
-        yt = YouTube(url, use_po_token=True) # تفعيل خاصية تجاوز الحظر
-        title = yt.title
+        if os.path.exists(TEMP_DOWNLOADS):
+            shutil.rmtree(TEMP_DOWNLOADS)
+        os.makedirs(TEMP_DOWNLOADS, exist_ok=True)
+    except: pass
+
+    # إعدادات yt-dlp للتمويه كجهاز آيفون
+    ydl_opts = {
+        'outtmpl': f'{TEMP_DOWNLOADS}/%(title)s.%(ext)s',
+        'quiet': True,
+        'no_warnings': True,
+        'restrictfilenames': True,
+        'socket_timeout': 30, # عدم الانتظار طويلاً
         
-        # تنظيف الاسم من الرموز الممنوعة
-        safe_title = "".join([c for c in title if c.isalpha() or c.isdigit() or c==' ']).rstrip()
+        # 🔴 الحيلة هنا: التظاهر بأننا آيفون لتخطي الحظر والتعليق
+        'extractor_args': {'youtube': {'player_client': ['ios']}},
         
-        output_path = f"{TEMP_DOWNLOADS}/{safe_title}"
+        'format': 'best', # افتراضي
+    }
 
-        if format_type == 'mp3':
-            # تحميل الصوت فقط
-            stream = yt.streams.get_audio_only()
-            downloaded_file = stream.download(output_path=TEMP_DOWNLOADS, filename=f"{safe_title}_raw.m4a")
-            
-            # تحويل إلى MP3 باستخدام FFmpeg (لضمان عمله على كل الأجهزة)
-            mp3_file = f"{TEMP_DOWNLOADS}/{safe_title}.mp3"
-            # أمر التحويل
-            subprocess.run([
-                'ffmpeg', '-i', downloaded_file, '-vn', '-ar', '44100', '-ac', '2', '-b:a', '192k', mp3_file, '-y'
-            ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            
-            return mp3_file, title, None
+    if format_type == 'mp3':
+        ydl_opts['format'] = 'bestaudio/best'
+        ydl_opts['postprocessors'] = [{'key': 'FFmpegExtractAudio','preferredcodec': 'mp3','preferredquality': '192'}]
+    elif format_type == '360':
+        ydl_opts['format'] = 'bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best'
+    elif format_type == '720':
+        ydl_opts['format'] = 'bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best'
 
-        elif format_type == '360':
-            stream = yt.streams.filter(res="360p", file_extension='mp4', progressive=True).first()
-            if not stream: # محاولة بديلة
-                stream = yt.streams.filter(res="360p").first()
-            final_file = stream.download(output_path=TEMP_DOWNLOADS, filename=f"{safe_title}_360.mp4")
-            return final_file, title, None
-            
-        elif format_type == '720':
-            stream = yt.streams.filter(res="720p", file_extension='mp4', progressive=True).first()
-            if not stream:
-                stream = yt.streams.filter(res="720p").first()
-            final_file = stream.download(output_path=TEMP_DOWNLOADS, filename=f"{safe_title}_720.mp4")
-            return final_file, title, None
-
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=True)
+            filename = ydl.prepare_filename(info)
+            if format_type == 'mp3':
+                base, _ = os.path.splitext(filename)
+                filename = base + ".mp3"
+            return filename, info.get('title', 'video'), None
     except Exception as e:
         return None, None, str(e)
 
-# --- 6. الهيدر ---
+# --- 5. الهيدر واللوغو ---
+@st.cache_data
+def get_img_as_base64(file):
+    try:
+        with open(file, "rb") as f:
+            data = f.read()
+        return base64.b64encode(data).decode()
+    except: return None
+
 logo_path = "zain_logo.png"
 if os.path.exists(logo_path):
     img_b64 = get_img_as_base64(logo_path)
@@ -129,7 +129,7 @@ if os.path.exists(logo_path):
 else:
     st.markdown("<h1 style='text-align:center;'>مكتبة زين</h1>", unsafe_allow_html=True)
 
-# --- 7. الواجهة ---
+# --- 6. الواجهة ---
 with st.expander("➕ إضافة فيديو جديد", expanded=False):
     c1, c2 = st.columns([1, 1])
     with c2: title_in = st.text_input("العنوان")
@@ -152,7 +152,6 @@ def show_expander_card(item, idx, cat_name):
     if item['type'] == 'local': icon = "📂"
     
     with st.expander(f"{icon} {item['title']}  |  📅 {item['date']}"):
-        # عرض الفيديو
         if "youtube.com" in item['path'] or "youtu.be" in item['path']:
             st.video(item['path'])
         else: st.info(f"رابط خارجي: {item['path']}")
