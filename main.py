@@ -79,22 +79,27 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* --- إصلاح البطاقات (Expander) ومنع التداخل --- */
-    /* إخفاء سهم البطاقات نهائياً */
-    .streamlit-expanderHeader svg { display: none !important; }
+    /* --- الحل الجذري لمشكلة arrow_right --- */
+    /* استهداف العنصر الحاوي للأيقونة وإخفاؤه تماماً */
+    [data-testid="stExpanderToggleIcon"] {
+        display: none !important;
+        visibility: hidden !important;
+        width: 0 !important;
+    }
+    
+    /* إخفاء أي عنصر SVG داخل الهيدر */
+    .streamlit-expanderHeader svg {
+        display: none !important;
+    }
 
+    /* تنسيق البطاقات (Expander) */
     .streamlit-expanderHeader {
         background-color: rgba(30, 41, 59, 0.7) !important;
         border: none !important;
         border-radius: 15px !important;
         padding: 15px 20px !important;
         margin-bottom: 10px;
-        
-        /* الترتيب المرن لمنع التداخل */
-        display: flex !important;
-        flex-direction: row-reverse !important; /* لضمان البدء من اليمين */
-        align-items: center !important;
-        justify-content: flex-start !important;
+        display: block !important; /* إلغاء الفليكس لتجنب المشاكل */
     }
 
     .streamlit-expanderHeader p {
@@ -103,7 +108,7 @@ st.markdown("""
         margin: 0 !important;
         text-align: right !important;
         width: 100% !important;
-        flex: 1 !important; /* يأخذ كامل المساحة المتاحة */
+        padding-right: 0 !important; /* إلغاء الحشو الزائد */
     }
 
     .streamlit-expanderContent {
@@ -177,7 +182,7 @@ def get_youtube_title(url):
     except: pass
     return None
 
-# --- 5. الهيدر (مع اسم اللوغو الجديد) ---
+# --- 5. الهيدر ---
 @st.cache_data
 def get_img_as_base64(file):
     try:
@@ -185,7 +190,6 @@ def get_img_as_base64(file):
         return base64.b64encode(data).decode()
     except: return None
 
-# البحث عن الاسم الجديد zain_logo_new.png
 logo_file = None
 if os.path.exists("zain_logo_new.png"): logo_file = "zain_logo_new.png"
 elif os.path.exists("zain_logo.png"): logo_file = "zain_logo.png"
