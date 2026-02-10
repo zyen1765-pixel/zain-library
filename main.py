@@ -44,13 +44,13 @@ def check_password():
 if not check_password():
     st.stop()
 
-# --- 3. التصميم (CSS) - إصلاح الخط واللوغو ---
+# --- 3. التصميم (CSS) ---
 st.markdown("""
     <style>
-    /* استيراد خط المراعي (الأولوية القصوى) */
+    /* استيراد خط المراعي */
     @import url('https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap');
 
-    /* تطبيق الخط على كل العناصر */
+    /* تطبيق الخط والألوان */
     html, body, .stApp {
         background-color: #0f172a !important;
         background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%);
@@ -59,12 +59,11 @@ st.markdown("""
         font-family: 'Almarai', sans-serif !important;
     }
 
-    /* ضمان تطبيق الخط على العناوين والنصوص */
+    /* النصوص */
     h1, h2, h3, h4, h5, h6, p, label, div, span, button, input {
         font-family: 'Almarai', sans-serif !important;
     }
-
-    /* تنسيق النصوص */
+    
     h1, h2, h3, h4, h5, h6, p, label {
         color: #ffffff !important;
     }
@@ -80,25 +79,33 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* إخفاء سهم البطاقات */
+    /* --- إصلاح البطاقات (Expander) ومنع التداخل --- */
+    /* إخفاء سهم البطاقات نهائياً */
     .streamlit-expanderHeader svg { display: none !important; }
 
-    /* تنسيق البطاقات (نظيف بدون إطار) */
     .streamlit-expanderHeader {
-        background-color: rgba(30, 41, 59, 0.6) !important;
+        background-color: rgba(30, 41, 59, 0.7) !important;
         border: none !important;
         border-radius: 15px !important;
-        padding: 15px !important;
-        display: block !important;
+        padding: 15px 20px !important;
         margin-bottom: 10px;
+        
+        /* الترتيب المرن لمنع التداخل */
+        display: flex !important;
+        flex-direction: row-reverse !important; /* لضمان البدء من اليمين */
+        align-items: center !important;
+        justify-content: flex-start !important;
     }
+
     .streamlit-expanderHeader p {
         font-size: 1.1rem !important;
         font-weight: 700 !important;
         margin: 0 !important;
         text-align: right !important;
         width: 100% !important;
+        flex: 1 !important; /* يأخذ كامل المساحة المتاحة */
     }
+
     .streamlit-expanderContent {
         background-color: transparent !important;
         border: none !important;
@@ -106,7 +113,6 @@ st.markdown("""
         text-align: right !important;
     }
     
-    /* الفواصل */
     hr {
         border-color: rgba(255, 255, 255, 0.1) !important;
         margin: 1.5em 0 !important;
@@ -122,12 +128,12 @@ st.markdown("""
     .cobalt-btn { background: linear-gradient(135deg, #3b82f6, #2563eb); }
     .dl-link:hover { opacity: 0.9; transform: translateY(-2px); }
 
-    /* تنسيق صورة اللوغو ليكون في المنتصف */
+    /* تنسيق اللوغو */
     .center-logo {
         display: block;
         margin-left: auto;
         margin-right: auto;
-        width: 130px; /* حجم اللوغو */
+        width: 130px; 
         height: auto;
         object-fit: contain;
     }
@@ -171,7 +177,7 @@ def get_youtube_title(url):
     except: pass
     return None
 
-# --- 5. الهيدر (اللوغو في المنتصف) ---
+# --- 5. الهيدر (مع اسم اللوغو الجديد) ---
 @st.cache_data
 def get_img_as_base64(file):
     try:
@@ -179,10 +185,10 @@ def get_img_as_base64(file):
         return base64.b64encode(data).decode()
     except: return None
 
-# هنا نتأكد من وجود اللوغو (سواء كان png أو jpg)
+# البحث عن الاسم الجديد zain_logo_new.png
 logo_file = None
-if os.path.exists("zain_logo.png"): logo_file = "zain_logo.png"
-elif os.path.exists("zain_logo.jpg"): logo_file = "zain_logo.jpg"
+if os.path.exists("zain_logo_new.png"): logo_file = "zain_logo_new.png"
+elif os.path.exists("zain_logo.png"): logo_file = "zain_logo.png"
 
 if logo_file:
     img_b64 = get_img_as_base64(logo_file)
