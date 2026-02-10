@@ -50,9 +50,9 @@ st.markdown("""
         border: 1px solid rgba(255,255,255,0.1);
         font-size: 0.9rem;
     }
-    .savefrom-btn { background: linear-gradient(45deg, #10b981, #059669); } /* الأخضر الأساسي */
-    .publer-btn { background: linear-gradient(45deg, #16a34a, #15803d); } /* أخضر غامق */
-    .cobalt-btn { background: linear-gradient(45deg, #3b82f6, #2563eb); } /* أزرق */
+    .savefrom-btn { background: linear-gradient(45deg, #10b981, #059669); } 
+    .shorts-btn { background: linear-gradient(45deg, #db2777, #be185d); } /* وردي للشورتس */
+    .cobalt-btn { background: linear-gradient(45deg, #3b82f6, #2563eb); } 
     
     .dl-link:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
 
@@ -84,7 +84,7 @@ def fix_youtube_url(url):
     if "instagram.com" in u: u = u.split("?")[0]
     return u
 
-# --- 4. الهيدر واللوغو ---
+# --- 4. الهيدر ---
 @st.cache_data
 def get_img_as_base64(file):
     try:
@@ -137,26 +137,26 @@ def show_expander_card(item, idx, cat_name):
 
         st.markdown("---")
         
-        # 1. قسم النسخ
-        st.write("##### 1️⃣ انسخ الرابط أولاً:")
+        # 1. نسخ الرابط
+        st.write("##### 1️⃣ انسخ الرابط:")
         st.code(item['path'], language="text")
         
-        # 2. قسم التحميل
-        st.write("##### 2️⃣ ثم افتح الموقع وألصق الرابط:")
+        # 2. أزرار المواقع
+        st.write("##### 2️⃣ اختر موقع التحميل:")
         
         c1, c2, c3 = st.columns(3)
         
         with c1:
-            # زر SaveFrom (يفتح الموقع الرئيسي)
-            st.markdown(f'<a href="https://en.savefrom.net/" target="_blank" class="dl-link savefrom-btn">🟢 SaveFrom (صوت/فيديو)</a>', unsafe_allow_html=True)
+            # زر SaveFrom (للفيديوهات العادية)
+            st.markdown(f'<a href="https://en.savefrom.net/" target="_blank" class="dl-link savefrom-btn">🟢 SaveFrom</a>', unsafe_allow_html=True)
         with c2:
-            # زر Publer (للشورتس)
-            st.markdown(f'<a href="https://publer.io/tools/media-downloader" target="_blank" class="dl-link publer-btn">🔥 Publer (للشورتس)</a>', unsafe_allow_html=True)
+            # زر ShortsNoob (متخصص للشورتس)
+            st.markdown(f'<a href="https://shortsnoob.com/" target="_blank" class="dl-link shorts-btn">🔥 ShortsNoob</a>', unsafe_allow_html=True)
         with c3:
-            # زر Cobalt (الأنظف)
-            st.markdown(f'<a href="https://cobalt.tools" target="_blank" class="dl-link cobalt-btn">💎 Cobalt (بدون إعلانات)</a>', unsafe_allow_html=True)
+            # زر 10Downloader (بديل قوي)
+            st.markdown(f'<a href="https://10downloader.com/en" target="_blank" class="dl-link cobalt-btn">💎 10Downloader</a>', unsafe_allow_html=True)
 
-        st.caption("💡 انسخ الرابط من الأعلى، ثم افتح الموقع وألصقه هناك للتحميل فوراً.")
+        st.caption("💡 للشورتس: استخدم الزر الوردي (ShortsNoob) فهو الأفضل حالياً.")
 
         st.markdown("---")
         if st.button("حذف الفيديو 🗑️", key=f"del_{unique_key}"):
