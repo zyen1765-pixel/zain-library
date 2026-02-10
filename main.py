@@ -19,24 +19,27 @@ st.markdown("""
     html, body, [class*="css"] { font-family: 'Cairo', sans-serif !important; }
     :root { --bg-dark: #0f172a; --primary: #38bdf8; --glass: rgba(30, 41, 59, 0.7); }
     .stApp { background-color: var(--bg-dark) !important; background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%); background-attachment: fixed; }
+    
     h1 { font-weight: 900 !important; color: white !important; }
     h3, p, label, div, span { text-align: right; }
+    
     .app-icon {
         width: 100px; height: 100px; object-fit: contain; background-color: white;
         border-radius: 20px; border: 3px solid #ffffff; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         display: block; 
     }
+    
     .streamlit-expanderHeader {
         background-color: var(--glass); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
         color: white !important; direction: rtl;
     }
     .streamlit-expanderContent { background-color: rgba(0,0,0,0.2); border-radius: 0 0 10px 10px; border-top: none; }
     
-    /* أزرار التحميل */
+    /* تنسيق الروابط الخارجية */
     .dl-link {
-        display: inline-block;
+        display: block;
         width: 100%;
-        padding: 12px;
+        padding: 10px;
         margin: 5px 0;
         text-align: center;
         border-radius: 8px;
@@ -44,9 +47,12 @@ st.markdown("""
         font-weight: bold;
         color: white !important;
         transition: 0.3s;
+        border: 1px solid rgba(255,255,255,0.1);
     }
-    .cobalt-btn { background: linear-gradient(45deg, #3b82f6, #8b5cf6); }
-    .ss-btn { background: linear-gradient(45deg, #10b981, #059669); }
+    .cobalt-btn { background: #3b82f6; } /* أزرق */
+    .y2mate-btn { background: #ef4444; } /* أحمر */
+    .savefrom-btn { background: #10b981; } /* أخضر */
+    
     .dl-link:hover { opacity: 0.9; transform: translateY(-2px); }
 
     #MainMenu, footer, header {visibility: hidden;}
@@ -67,25 +73,17 @@ def save_to_disk():
     with open(DB_FILE, "w", encoding="utf-8") as f:
         json.dump(st.session_state.videos, f, ensure_ascii=False, indent=4)
 
-# دالة ذكية لإصلاح الروابط المختصرة
 def fix_youtube_url(url):
     if not url: return ""
     u = url.strip()
-    # تحويل رابط الشورتس
-    if "youtube.com/shorts/" in u: 
-        u = u.replace("shorts/", "watch?v=")
-    # تحويل الرابط المختصر (youtu.be) إلى الرابط الطويل
+    if "youtube.com/shorts/" in u: u = u.replace("shorts/", "watch?v=")
     elif "youtu.be/" in u:
         vid_id = u.split("youtu.be/")[-1].split("?")[0]
         u = f"https://www.youtube.com/watch?v={vid_id}"
-    
-    # تنظيف روابط انستغرام
-    if "instagram.com" in u: 
-        u = u.split("?")[0]
-        
+    if "instagram.com" in u: u = u.split("?")[0]
     return u
 
-# --- 4. الهيدر ---
+# --- 4. الهيدر واللوغو ---
 @st.cache_data
 def get_img_as_base64(file):
     try:
@@ -117,7 +115,7 @@ with st.expander("➕ إضافة فيديو جديد", expanded=False):
     url_in = st.text_input("رابط الفيديو")
     if st.button("حفظ ✅"):
         if title_in and url_in:
-            final_url = fix_youtube_url(url_in) # استخدام الدالة المصلحة
+            final_url = fix_youtube_url(url_in)
             st.session_state.videos.append({"title": title_in, "path": final_url, "category": cat_in, "type": "url", "date": time.strftime("%Y-%m-%d")})
             save_to_disk()
             st.rerun()
@@ -138,41 +136,24 @@ def show_expander_card(item, idx, cat_name):
         else: st.info(f"رابط خارجي: {item['path']}")
 
         st.markdown("---")
-        st.markdown("##### ⬇️ خيارات التحميل:")
         
-        # 1. عرض الرابط للنسخ (أضمن طريقة)
-        st.caption("1️⃣ انسخ الرابط من هنا:")
+        # 1. قسم النسخ (يدوي ومضمون)
+        st.write("##### 1️⃣ الخطوة الأولى: انسخ الرابط 👇")
         st.code(item['path'], language="text")
         
-        # 2. الأزرار الخارجية
-        st.caption("2️⃣ ثم اختر موقع للتحميل (اضغط لفتح الموقع):")
+        # 2. قسم التحميل (روابط لمواقع تعمل 100%)
+        st.write("##### 2️⃣ الخطوة الثانية: اختر موقعاً للتحميل 👇")
         
-        # رابط Cobalt (نظيف)
-        cobalt_url = "https://cobalt.tools"
-        
-        # رابط SSYoutube (مع الرابط المصلح)
-        # نقوم بتحويل www.youtube.com إلى ssyoutube.com مباشرة
-        ss_link = item['path'].replace("www.youtube.com", "ssyoutube.com").replace("youtube.com", "ssyoutube.com")
-
-        c1, c2 = st.columns(2)
+        c1, c2, c3 = st.columns(3)
         
         with c1:
-            # زر كوبالت - أفضل خيار
-            st.markdown(f"""
-                <a href="{cobalt_url}" target="_blank" class="dl-link cobalt-btn">
-                💎 موقع Cobalt (بدون إعلانات)
-                </a>
-            """, unsafe_allow_html=True)
-            
+            st.markdown(f'<a href="https://cobalt.tools" target="_blank" class="dl-link cobalt-btn">💎 Cobalt (بدون إعلانات)</a>', unsafe_allow_html=True)
         with c2:
-            # زر SSYoutube - الخيار السريع
-            st.markdown(f"""
-                <a href="{ss_link}" target="_blank" class="dl-link ss-btn">
-                🟢 موقع SSYoutube (سريع)
-                </a>
-            """, unsafe_allow_html=True)
-            
-        st.caption("💡 نصيحة: موقع Cobalt هو الأفضل. افتحه والصق الرابط الذي نسخته.")
+            st.markdown(f'<a href="https://en.savefrom.net/1-youtube-video-downloader-360/" target="_blank" class="dl-link savefrom-btn">🟢 SaveFrom (سريع)</a>', unsafe_allow_html=True)
+        with c3:
+            st.markdown(f'<a href="https://www.y2mate.com/en360" target="_blank" class="dl-link y2mate-btn">🔴 Y2Mate (مشهور)</a>', unsafe_allow_html=True)
+
+        st.caption("💡 طريقة الاستخدام: انسخ الرابط من الأعلى، ثم اضغط على أحد المواقع والصقه هناك.")
 
         st.markdown("---")
         if st.button("حذف الفيديو 🗑️", key=f"del_{unique_key}"):
