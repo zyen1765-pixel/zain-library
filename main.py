@@ -55,23 +55,23 @@ with col_mode:
         st.session_state.theme_mode = 'light' if st.session_state.theme_mode == 'dark' else 'dark'
         st.rerun()
 
-# إعدادات الألوان
+# إعدادات الألوان واللوغو بناءً على الوضع المختار
 if st.session_state.theme_mode == 'dark':
     bg_color = "#0f172a"
     gradient = "radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%)"
     text_color = "#ffffff"
     input_bg = "rgba(255, 255, 255, 0.05)"
     header_bg = "rgba(30, 41, 59, 0.7)"
-    # اللوغو المستهدف في الوضع الليلي
-    target_logo = ["zain_logo_new.png", "zain_logo.png"]
+    # قائمة بأسماء الملفات المحتملة للوغو الأبيض
+    possible_logos = ["zain_logo_new.png", "zain_logo.png", "zain_logo.jpg"]
 else:
     bg_color = "#f8fafc"
     gradient = "radial-gradient(circle at 50% 0%, #e2e8f0 0%, #f8fafc 70%)"
     text_color = "#1e293b"
     input_bg = "rgba(0, 0, 0, 0.05)"
     header_bg = "rgba(226, 232, 240, 0.8)"
-    # اللوغو المستهدف في الوضع النهاري (الغامق)
-    target_logo = ["zain_logo_dark.png", "zain_logo.jpg"]
+    # قائمة بأسماء الملفات المحتملة للوغو الملون (النهاري)
+    possible_logos = ["zain_logo_dark.jpg", "zain_logo_dark.png"]
 
 # --- 4. التصميم (CSS) ---
 st.markdown(f"""
@@ -150,7 +150,7 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 5. إدارة الملفات ---
+# --- 5. إدارة الملفات وقاعدة البيانات ---
 DB_FILE = "zain_library.json"
 if 'videos' not in st.session_state:
     if os.path.exists(DB_FILE):
@@ -183,7 +183,7 @@ def get_youtube_title(url):
     except: pass
     return None
 
-# --- 6. الهيدر مع تبديل اللوغو ---
+# --- 6. الهيدر وتبديل اللوغو الذكي ---
 @st.cache_data
 def get_img_as_base64(file):
     try:
@@ -191,24 +191,26 @@ def get_img_as_base64(file):
         return base64.b64encode(data).decode()
     except: return None
 
-# منطق اختيار اللوغو بناءً على الوضع
+# البحث عن أول ملف متاح في القائمة المحددة حسب الوضع
 logo_to_show = None
-for l_name in target_logo:
-    if os.path.exists(l_name):
-        logo_to_show = l_name
+for l_path in possible_logos:
+    if os.path.exists(l_path):
+        logo_to_show = l_path
         break
 
 if logo_to_show:
     img_b64 = get_img_as_base64(logo_to_show)
+    # تحديد صيغة الصورة (png أو jpg)
+    img_type = "jpeg" if logo_to_show.endswith("jpg") else "png"
     st.markdown(f"""
         <div style="text-align: center; padding-top: 10px;">
-            <img src="data:image/png;base64,{img_b64}" class="center-logo">
+            <img src="data:image/{img_type};base64,{img_b64}" class="center-logo">
             <h1 style="margin-top: 10px; font-size: 3rem; color: {text_color}; text-shadow: 0 0 20px rgba(56, 189, 248, 0.3);">مكتبة زين</h1>
             <p style="opacity: 0.9; font-size: 1.2rem; margin: 5px 0 20px 0; font-weight: 300;">مساحتك الخاصة للإبداع</p>
         </div>
     """, unsafe_allow_html=True)
 else:
-    st.markdown(f"<h1 style='text-align:center;'>مكتبة زين</h1>", unsafe_allow_html=True)
+    st.markdown(f"<h1 style='text-align:center; color: {text_color};'>مكتبة زين</h1>", unsafe_allow_html=True)
 
 # --- 7. الواجهة ---
 with st.expander("➕ إضافة فيديو جديد", expanded=False):
