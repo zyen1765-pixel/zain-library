@@ -15,7 +15,7 @@ st.set_page_config(
 )
 
 # --- 2. نظام الحماية ---
-PASSWORD = "1"
+PASSWORD = "12345" 
 
 def check_password():
     if "password_correct" not in st.session_state:
@@ -55,23 +55,17 @@ with col_mode:
         st.session_state.theme_mode = 'light' if st.session_state.theme_mode == 'dark' else 'dark'
         st.rerun()
 
-# إعدادات الألوان واللوغو بناءً على الوضع المختار
+# إعدادات الألوان واللوغو بناءً على الوضع المختار (دعم WebP كأولوية)
 if st.session_state.theme_mode == 'dark':
-    bg_color = "#0f172a"
+    bg_color, text_color = "#0f172a", "#ffffff"
     gradient = "radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%)"
-    text_color = "#ffffff"
-    input_bg = "rgba(255, 255, 255, 0.05)"
-    header_bg = "rgba(30, 41, 59, 0.7)"
-    # قائمة بأسماء الملفات المحتملة للوغو الأبيض
-    possible_logos = ["zain_logo_new.wbm", "zain_logo.wbm", "zain_logo.wbm"]
+    input_bg, header_bg = "rgba(255, 255, 255, 0.05)", "rgba(30, 41, 59, 0.7)"
+    possible_logos = ["zain_logo.webp", "zain_logo_new.png", "zain_logo.png", "zain_logo.jpg"]
 else:
-    bg_color = "#f8fafc"
+    bg_color, text_color = "#f8fafc", "#1e293b"
     gradient = "radial-gradient(circle at 50% 0%, #e2e8f0 0%, #f8fafc 70%)"
-    text_color = "#1e293b"
-    input_bg = "rgba(0, 0, 0, 0.05)"
-    header_bg = "rgba(226, 232, 240, 0.8)"
-    # قائمة بأسماء الملفات المحتملة للوغو الملون (النهاري)
-    possible_logos = ["zain_logo_dark.wbm", "zain_logo_dark.wbm"]
+    input_bg, header_bg = "rgba(0, 0, 0, 0.05)", "rgba(226, 232, 240, 0.8)"
+    possible_logos = ["zain_logo_dark.webp", "zain_logo_dark.jpg", "zain_logo_dark.png"]
 
 # --- 4. التصميم (CSS) ---
 st.markdown(f"""
@@ -119,6 +113,7 @@ st.markdown(f"""
         border: 1px solid rgba(128, 128, 128, 0.2) !important;
         direction: rtl !important;
         text-align: right !important;
+        -webkit-text-fill-color: {text_color} !important;
     }}
 
     @media (min-width: 1000px) {{
@@ -150,7 +145,7 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 5. إدارة الملفات وقاعدة البيانات ---
+# --- 5. إدارة الملفات ---
 DB_FILE = "zain_library.json"
 if 'videos' not in st.session_state:
     if os.path.exists(DB_FILE):
@@ -183,7 +178,7 @@ def get_youtube_title(url):
     except: pass
     return None
 
-# --- 6. الهيدر وتبديل اللوغو الذكي ---
+# --- 6. الهيدر وتبديل اللوغو ---
 @st.cache_data
 def get_img_as_base64(file):
     try:
@@ -191,7 +186,6 @@ def get_img_as_base64(file):
         return base64.b64encode(data).decode()
     except: return None
 
-# البحث عن أول ملف متاح في القائمة المحددة حسب الوضع
 logo_to_show = None
 for l_path in possible_logos:
     if os.path.exists(l_path):
@@ -200,11 +194,11 @@ for l_path in possible_logos:
 
 if logo_to_show:
     img_b64 = get_img_as_base64(logo_to_show)
-    # تحديد صيغة الصورة (wbm أو jpg)
-    img_type = "wbm" if logo_to_show.endswith("wbm") else "png"
+    ext = logo_to_show.split('.')[-1]
+    mime_type = "image/webp" if ext == "webp" else f"image/{ext.replace('jpg', 'jpeg')}"
     st.markdown(f"""
         <div style="text-align: center; padding-top: 10px;">
-            <img src="data:image/{img_type};base64,{img_b64}" class="center-logo">
+            <img src="data:{mime_type};base64,{img_b64}" class="center-logo">
             <h1 style="margin-top: 10px; font-size: 3rem; color: {text_color}; text-shadow: 0 0 20px rgba(56, 189, 248, 0.3);">مكتبة زين</h1>
             <p style="opacity: 0.9; font-size: 1.2rem; margin: 5px 0 20px 0; font-weight: 300;">مساحتك الخاصة للإبداع</p>
         </div>
@@ -231,7 +225,7 @@ with st.expander("➕ إضافة فيديو جديد", expanded=False):
     if st.button("حفظ ✅"):
         if title_in and url_in:
             final_url = fix_youtube_url(url_in)
-            st.session_state.videos.append({"title": title_in, "path": final_url, "category": cat_in, "type": "url", "date": time.strftime("%Y-%m-%d")})
+            st.session_state.videos.append({"title": title_in, "path": final_url, "category": cat_in, "date": time.strftime("%Y-%m-%d")})
             save_to_disk()
             if 'temp_title' in st.session_state: del st.session_state.temp_title
             st.rerun()
