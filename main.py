@@ -46,30 +46,34 @@ if not check_password():
 
 # --- 3. إدارة "الوضع" (ليلي/نهاري) ---
 if 'theme_mode' not in st.session_state:
-    st.session_state.theme_mode = 'dark' # البداية بالوضع الليلي الافتراضي
+    st.session_state.theme_mode = 'dark'
 
-# وضع زر التبديل في الأعلى
+# زر التبديل في الأعلى
 col_mode, col_empty = st.columns([0.1, 0.9])
 with col_mode:
     if st.button("🌓"):
         st.session_state.theme_mode = 'light' if st.session_state.theme_mode == 'dark' else 'dark'
         st.rerun()
 
-# إعدادات الألوان حسب الوضع المختار
+# إعدادات الألوان
 if st.session_state.theme_mode == 'dark':
     bg_color = "#0f172a"
     gradient = "radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%)"
     text_color = "#ffffff"
     input_bg = "rgba(255, 255, 255, 0.05)"
     header_bg = "rgba(30, 41, 59, 0.7)"
+    # اللوغو المستهدف في الوضع الليلي
+    target_logo = ["zain_logo_new.png", "zain_logo.png"]
 else:
     bg_color = "#f8fafc"
     gradient = "radial-gradient(circle at 50% 0%, #e2e8f0 0%, #f8fafc 70%)"
     text_color = "#1e293b"
     input_bg = "rgba(0, 0, 0, 0.05)"
     header_bg = "rgba(226, 232, 240, 0.8)"
+    # اللوغو المستهدف في الوضع النهاري (الغامق)
+    target_logo = ["zain_logo_dark.png", "zain_logo.jpg"]
 
-# --- 4. التصميم (CSS) المحسن ---
+# --- 4. التصميم (CSS) ---
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap');
@@ -179,7 +183,7 @@ def get_youtube_title(url):
     except: pass
     return None
 
-# --- 6. الهيدر ---
+# --- 6. الهيدر مع تبديل اللوغو ---
 @st.cache_data
 def get_img_as_base64(file):
     try:
@@ -187,12 +191,15 @@ def get_img_as_base64(file):
         return base64.b64encode(data).decode()
     except: return None
 
-logo_file = None
-if os.path.exists("zain_logo_new.png"): logo_file = "zain_logo_new.png"
-elif os.path.exists("zain_logo.png"): logo_file = "zain_logo.png"
+# منطق اختيار اللوغو بناءً على الوضع
+logo_to_show = None
+for l_name in target_logo:
+    if os.path.exists(l_name):
+        logo_to_show = l_name
+        break
 
-if logo_file:
-    img_b64 = get_img_as_base64(logo_file)
+if logo_to_show:
+    img_b64 = get_img_as_base64(logo_to_show)
     st.markdown(f"""
         <div style="text-align: center; padding-top: 10px;">
             <img src="data:image/png;base64,{img_b64}" class="center-logo">
