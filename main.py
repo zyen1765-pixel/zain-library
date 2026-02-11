@@ -14,90 +14,85 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. نظام الحماية ---
-PASSWORD = "12345"
+# --- 2. دوال مساعدة وسريعة (Cached) ---
+def toggle_theme():
+    """دالة التبديل السريع"""
+    st.session_state.theme_mode = 'light' if st.session_state.theme_mode == 'dark' else 'dark'
 
-def check_password():
-    if "password_correct" not in st.session_state:
-        st.session_state.password_correct = False
-    if st.session_state.password_correct:
-        return True
+@st.cache_data
+def get_img_as_base64(file):
+    try:
+        with open(file, "rb") as f: data = f.read()
+        return base64.b64encode(data).decode()
+    except: return None
 
-    st.markdown("""
-        <style>
-        .stApp { background-color: #0f172a !important; color: white !important; }
-        .stTextInput input { text-align: center; color: white !important; background-color: #1e293b !important; border: 1px solid #334155 !important; }
-        h1 {text-align: center; color: white !important; font-family: sans-serif;}
-        </style>
-        """, unsafe_allow_html=True)
+@st.cache_data
+def get_active_logo(mode):
+    """تحديد اللوغو المناسب مرة واحدة فقط لتسريع التحميل"""
+    if mode == 'dark':
+        candidates = ["zain_logo.webp", "zain_logo_new.png", "zain_logo.png", "zain_logo.jpg"]
+    else:
+        candidates = ["zain_logo_dark.webp", "zain_logo_dark.jpg", "zain_logo_dark.png"]
     
-    st.title("🔒 المكتبة محمية")
-    pwd_input = st.text_input("أدخل كلمة المرور:", type="password")
-    if st.button("دخول 🔓"):
-        if pwd_input == PASSWORD:
-            st.session_state.password_correct = True
-            st.rerun()
-        else:
-            st.error("❌ كلمة المرور خاطئة")
-    return False
+    for path in candidates:
+        if os.path.exists(path):
+            return path
+    return None
 
-if not check_password():
-    st.stop()
-
-# --- 3. إدارة الوضع (ليلي/نهاري) ---
+# --- 3. إدارة الوضع ---
 if 'theme_mode' not in st.session_state:
     st.session_state.theme_mode = 'dark'
 
-# زر التبديل
-col_mode, col_empty = st.columns([0.1, 0.9])
+# زر التبديل (مع Callback للسرعة)
+col_mode, _ = st.columns([0.1, 0.9])
 with col_mode:
-    if st.button("🌓"):
-        st.session_state.theme_mode = 'light' if st.session_state.theme_mode == 'dark' else 'dark'
-        st.rerun()
+    st.button("🌓", on_click=toggle_theme, help="تبديل الوضع")
 
-# إعدادات الألوان (دعم WebP)
+# إعداد المتغيرات حسب الوضع
 if st.session_state.theme_mode == 'dark':
-    bg_color, text_color = "#0f172a", "#ffffff"
-    gradient = "radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%)"
-    input_bg, header_bg = "rgba(255, 255, 255, 0.05)", "rgba(30, 41, 59, 0.7)"
-    possible_logos = ["zain_logo.webp", "zain_logo_new.png", "zain_logo.png", "zain_logo.jpg"]
+    vars = {
+        "bg": "#0f172a", "text": "#ffffff",
+        "grad": "radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%)",
+        "inp": "rgba(255, 255, 255, 0.05)", "head": "rgba(30, 41, 59, 0.7)"
+    }
 else:
-    bg_color, text_color = "#f8fafc", "#1e293b"
-    gradient = "radial-gradient(circle at 50% 0%, #e2e8f0 0%, #f8fafc 70%)"
-    input_bg, header_bg = "rgba(0, 0, 0, 0.05)", "rgba(226, 232, 240, 0.8)"
-    possible_logos = ["zain_logo_dark.webp", "zain_logo_dark.jpg", "zain_logo_dark.png"]
+    vars = {
+        "bg": "#f8fafc", "text": "#1e293b",
+        "grad": "radial-gradient(circle at 50% 0%, #e2e8f0 0%, #f8fafc 70%)",
+        "inp": "rgba(0, 0, 0, 0.05)", "head": "rgba(226, 232, 240, 0.8)"
+    }
 
-# --- 4. CSS المحسن للسرعة ---
+# --- 4. CSS المحسن ---
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap');
 
     html, body, .stApp {{
-        background-color: {bg_color} !important;
-        background-image: {gradient};
+        background-color: {vars['bg']} !important;
+        background-image: {vars['grad']};
         background-attachment: fixed;
-        color: {text_color} !important;
+        color: {vars['text']} !important;
     }}
 
     h1, h2, h3, h4, h5, h6, p, label, button, .stMarkdown p, .stButton button, .stTextInput input {{
         font-family: 'Almarai', sans-serif !important;
-        color: {text_color} !important;
+        color: {vars['text']} !important;
     }}
     
     [data-testid="stExpanderToggleIcon"], svg {{ display: none !important; visibility: hidden !important; }}
 
     .streamlit-expanderHeader {{
-        background-color: {header_bg} !important;
+        background-color: {vars['head']} !important;
         border-radius: 15px !important; padding: 15px 20px !important;
         margin-bottom: 12px; display: block !important; border: none !important;
     }}
 
     .stTextInput input, div[data-baseweb="select"] > div {{
-        background-color: {input_bg} !important;
-        color: {text_color} !important;
+        background-color: {vars['inp']} !important;
+        color: {vars['text']} !important;
         border: 1px solid rgba(128, 128, 128, 0.2) !important;
         direction: rtl !important; text-align: right !important;
-        -webkit-text-fill-color: {text_color} !important;
+        -webkit-text-fill-color: {vars['text']} !important;
     }}
 
     @media (min-width: 1000px) {{
@@ -122,28 +117,16 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 5. منطق الصور ---
-@st.cache_data
-def get_img_as_base64(file):
-    try:
-        with open(file, "rb") as f: data = f.read()
-        return base64.b64encode(data).decode()
-    except: return None
-
-logo_to_show = None
-for l_path in possible_logos:
-    if os.path.exists(l_path):
-        logo_to_show = l_path
-        break
-
-if logo_to_show:
-    img_b64 = get_img_as_base64(logo_to_show)
-    ext = logo_to_show.split('.')[-1]
-    mime_type = "image/webp" if ext == "webp" else f"image/{ext.replace('jpg', 'jpeg')}"
+# --- 5. عرض اللوغو ---
+logo_path = get_active_logo(st.session_state.theme_mode)
+if logo_path:
+    img_b64 = get_img_as_base64(logo_path)
+    ext = logo_path.split('.')[-1]
+    mime = "image/webp" if ext == "webp" else f"image/{ext.replace('jpg', 'jpeg')}"
     st.markdown(f"""
         <div style="text-align: center; padding-top: 10px;">
-            <img src="data:{mime_type};base64,{img_b64}" class="center-logo">
-            <h1 style="margin-top: 10px; font-size: 3rem; color: {text_color}; text-shadow: 0 0 20px rgba(56, 189, 248, 0.3);">مكتبة زين</h1>
+            <img src="data:{mime};base64,{img_b64}" class="center-logo">
+            <h1 style="margin-top: 10px; font-size: 3rem; color: {vars['text']}; text-shadow: 0 0 20px rgba(56, 189, 248, 0.3);">مكتبة زين</h1>
             <p style="opacity: 0.9; font-size: 1.2rem; margin: 5px 0 20px 0; font-weight: 300;">مساحتك الخاصة للإبداع</p>
         </div>
     """, unsafe_allow_html=True)
@@ -163,40 +146,35 @@ def save_to_disk():
         json.dump(st.session_state.videos, f, ensure_ascii=False, indent=4)
 
 def fix_youtube_url(url):
-    if not url: return ""
     u = url.strip()
     if "shorts/" in u:
-        v_id = u.split("shorts/")[-1].split("?")[0]
-        return f"https://www.youtube.com/watch?v={v_id}"
+        return f"https://www.youtube.com/watch?v={u.split('shorts/')[-1].split('?')[0]}"
     elif "youtu.be/" in u:
-        v_id = u.split("youtu.be/")[-1].split("?")[0]
-        return f"https://www.youtube.com/watch?v={v_id}"
+        return f"https://www.youtube.com/watch?v={u.split('youtu.be/')[-1].split('?')[0]}"
     return u
 
 def get_youtube_title(url):
     try:
-        clean_url = fix_youtube_url(url)
-        oembed_url = f"https://www.youtube.com/oembed?url={clean_url}&format=json"
-        response = requests.get(oembed_url, timeout=3)
-        if response.status_code == 200:
-            return response.json().get('title')
+        clean = fix_youtube_url(url)
+        res = requests.get(f"https://www.youtube.com/oembed?url={clean}&format=json", timeout=3)
+        if res.status_code == 200: return res.json().get('title')
     except: pass
     return None
 
-# --- 7. الواجهة ---
+# --- 7. الإدخال ---
 with st.expander("➕ إضافة فيديو جديد", expanded=False):
     url_in = st.text_input("رابط الفيديو")
     if st.button("🔍 جلب العنوان"):
         if url_in:
-            fetched_title = get_youtube_title(url_in)
-            if fetched_title:
-                st.session_state.temp_title = fetched_title
+            t = get_youtube_title(url_in)
+            if t:
+                st.session_state.temp_title = t
                 st.success("تم!")
-            else: st.warning("اكتب العنوان يدوياً")
+            else: st.warning("يدوياً")
     
-    default_title = st.session_state.get('temp_title', '')
+    dt = st.session_state.get('temp_title', '')
     c1, c2 = st.columns([1, 1])
-    with c2: title_in = st.text_input("العنوان", value=default_title)
+    with c2: title_in = st.text_input("العنوان", value=dt)
     with c1: cat_in = st.selectbox("التصنيف", ["دراسة", "ديني", "تصميم", "ترفيه", "أخرى"])
     
     if st.button("حفظ ✅"):
@@ -213,38 +191,31 @@ st.markdown("---")
 categories = ["الكل", "دراسة", "ديني", "تصميم", "ترفيه", "أخرى"]
 tabs = st.tabs(categories)
 
-# --- 8. نظام الصفحات (السرعة القصوى) ---
-VIDEOS_PER_PAGE = 10 # عدد الفيديوهات في كل صفحة
+# --- 8. الصفحات (Optimized: 5 Videos) ---
+VIDEOS_PER_PAGE = 5 # تقليل العدد لزيادة سرعة التبديل
 
 if 'page_num' not in st.session_state:
     st.session_state.page_num = 0
 
 for i, cat in enumerate(categories):
     with tabs[i]:
-        # تصفية الفيديوهات حسب التصنيف
         all_items = [v for v in reversed(st.session_state.videos) if cat == "الكل" or v['category'] == cat]
         
         if not all_items:
             st.info("لا يوجد محتوى")
         else:
-            # حساب الصفحات
             total_pages = max(1, (len(all_items) + VIDEOS_PER_PAGE - 1) // VIDEOS_PER_PAGE)
-            current_page = st.session_state.page_num
+            current_page = min(max(0, st.session_state.page_num), total_pages - 1)
             
-            # ضمان أن الصفحة الحالية صالحة
-            if current_page >= total_pages: current_page = total_pages - 1
-            if current_page < 0: current_page = 0
+            start = current_page * VIDEOS_PER_PAGE
+            end = start + VIDEOS_PER_PAGE
+            page_items = all_items[start:end]
             
-            start_idx = current_page * VIDEOS_PER_PAGE
-            end_idx = start_idx + VIDEOS_PER_PAGE
-            page_items = all_items[start_idx:end_idx]
-            
-            # عرض الفيديوهات (للصفحة الحالية فقط)
             for idx, vid in enumerate(page_items):
-                unique_key = f"{cat}_{start_idx + idx}"
+                unique_key = f"{cat}_{start + idx}"
                 with st.expander(f"🎥 {vid['title']}"):
                     st.video(vid['path'])
-                    st_copy_to_clipboard(vid['path'], "📋 نسخ الرابط", key=f"cp_{unique_key}")
+                    st_copy_to_clipboard(vid['path'], "📋 نسخ", key=f"cp_{unique_key}")
                     c1, c2 = st.columns(2)
                     c1.markdown(f'<a href="https://en.savefrom.net/" target="_blank" class="dl-link savefrom-btn">🟢 SaveFrom</a>', unsafe_allow_html=True)
                     c2.markdown(f'<a href="https://cobalt.tools" target="_blank" class="dl-link cobalt-btn">🔵 Cobalt</a>', unsafe_allow_html=True)
@@ -254,19 +225,15 @@ for i, cat in enumerate(categories):
                         st.rerun()
             
             st.markdown("---")
-            # أزرار التنقل بين الصفحات
-            col_prev, col_info, col_next = st.columns([1, 2, 1])
-            
-            with col_prev:
+            c_prev, c_info, c_next = st.columns([1, 2, 1])
+            with c_prev:
                 if current_page > 0:
                     if st.button("السابق ⬅️", key=f"prev_{cat}"):
                         st.session_state.page_num -= 1
                         st.rerun()
-            
-            with col_info:
-                st.markdown(f"<div style='text-align: center; padding-top: 10px;'>صفحة {current_page + 1} من {total_pages}</div>", unsafe_allow_html=True)
-            
-            with col_next:
+            with c_info:
+                st.markdown(f"<div style='text-align: center; direction: rtl;'>صفحة {current_page + 1} من {total_pages}</div>", unsafe_allow_html=True)
+            with c_next:
                 if current_page < total_pages - 1:
                     if st.button("التالي ➡️", key=f"next_{cat}"):
                         st.session_state.page_num += 1
