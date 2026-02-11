@@ -200,8 +200,8 @@ for l_path in possible_logos:
 
 if logo_to_show:
     img_b64 = get_img_as_base64(logo_to_show)
-    # تحديد صيغة الصورة (png أو jpg)
-    img_type = "jpeg" if logo_to_show.endswith("jpg") else "png"
+    # تحديد صيغة الصورة (wbm أو jpg)
+    img_type = "wbm" if logo_to_show.endswith("wbm") else "png"
     st.markdown(f"""
         <div style="text-align: center; padding-top: 10px;">
             <img src="data:image/{img_type};base64,{img_b64}" class="center-logo">
