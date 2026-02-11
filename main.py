@@ -15,7 +15,7 @@ st.set_page_config(
 )
 
 # --- 2. نظام الحماية ---
-PASSWORD = "12345"
+PASSWORD = "1"
 
 def check_password():
     if "password_correct" not in st.session_state:
@@ -63,7 +63,7 @@ if st.session_state.theme_mode == 'dark':
     input_bg = "rgba(255, 255, 255, 0.05)"
     header_bg = "rgba(30, 41, 59, 0.7)"
     # قائمة بأسماء الملفات المحتملة للوغو الأبيض
-    possible_logos = ["zain_logo_new.png", "zain_logo.png", "zain_logo.jpg"]
+    possible_logos = ["zain_logo_new.webp", "zain_logo.webp", "zain_logo.webp"]
 else:
     bg_color = "#f8fafc"
     gradient = "radial-gradient(circle at 50% 0%, #e2e8f0 0%, #f8fafc 70%)"
@@ -71,7 +71,7 @@ else:
     input_bg = "rgba(0, 0, 0, 0.05)"
     header_bg = "rgba(226, 232, 240, 0.8)"
     # قائمة بأسماء الملفات المحتملة للوغو الملون (النهاري)
-    possible_logos = ["zain_logo_dark.jpg", "zain_logo_dark.png"]
+    possible_logos = ["zain_logo_dark.webp", "zain_logo_dark.webp"]
 
 # --- 4. التصميم (CSS) ---
 st.markdown(f"""
