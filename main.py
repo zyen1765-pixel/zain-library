@@ -15,7 +15,7 @@ st.set_page_config(
 )
 
 # --- 2. نظام الحماية ---
-PASSWORD = "12345" 
+PASSWORD = "12345"
 
 def check_password():
     if "password_correct" not in st.session_state:
@@ -44,18 +44,18 @@ def check_password():
 if not check_password():
     st.stop()
 
-# --- 3. إدارة "الوضع" (ليلي/نهاري) ---
+# --- 3. إدارة الوضع (ليلي/نهاري) ---
 if 'theme_mode' not in st.session_state:
     st.session_state.theme_mode = 'dark'
 
-# زر التبديل في الأعلى
+# زر التبديل
 col_mode, col_empty = st.columns([0.1, 0.9])
 with col_mode:
     if st.button("🌓"):
         st.session_state.theme_mode = 'light' if st.session_state.theme_mode == 'dark' else 'dark'
         st.rerun()
 
-# إعدادات الألوان واللوغو بناءً على الوضع المختار (دعم WebP كأولوية)
+# إعدادات الألوان (دعم WebP)
 if st.session_state.theme_mode == 'dark':
     bg_color, text_color = "#0f172a", "#ffffff"
     gradient = "radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%)"
@@ -67,7 +67,7 @@ else:
     input_bg, header_bg = "rgba(0, 0, 0, 0.05)", "rgba(226, 232, 240, 0.8)"
     possible_logos = ["zain_logo_dark.webp", "zain_logo_dark.jpg", "zain_logo_dark.png"]
 
-# --- 4. التصميم (CSS) ---
+# --- 4. CSS المحسن للسرعة ---
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap');
@@ -84,35 +84,19 @@ st.markdown(f"""
         color: {text_color} !important;
     }}
     
-    [data-testid="stExpanderToggleIcon"], svg {{
-        display: none !important;
-        visibility: hidden !important;
-    }}
+    [data-testid="stExpanderToggleIcon"], svg {{ display: none !important; visibility: hidden !important; }}
 
     .streamlit-expanderHeader {{
         background-color: {header_bg} !important;
-        border: none !important;
-        border-radius: 15px !important;
-        padding: 15px 20px !important;
-        margin-bottom: 12px;
-        display: block !important;
-    }}
-
-    .streamlit-expanderHeader p {{
-        font-size: 1.1rem !important;
-        font-weight: 700 !important;
-        margin: 0 !important;
-        text-align: right !important;
-        width: 100% !important;
-        direction: rtl !important;
+        border-radius: 15px !important; padding: 15px 20px !important;
+        margin-bottom: 12px; display: block !important; border: none !important;
     }}
 
     .stTextInput input, div[data-baseweb="select"] > div {{
         background-color: {input_bg} !important;
         color: {text_color} !important;
         border: 1px solid rgba(128, 128, 128, 0.2) !important;
-        direction: rtl !important;
-        text-align: right !important;
+        direction: rtl !important; text-align: right !important;
         -webkit-text-fill-color: {text_color} !important;
     }}
 
@@ -124,12 +108,9 @@ st.markdown(f"""
         .center-logo {{ width: 160px !important; }}
     }}
 
-    .streamlit-expanderContent {{
-        background-color: transparent !important;
-        border: none !important;
-        padding: 15px 25px !important;
-        text-align: right !important;
-    }}
+    .center-logo {{ display: block; margin-left: auto; margin-right: auto; width: 130px; height: auto; }}
+    #MainMenu, footer, header {{visibility: hidden;}}
+    .stTabs [data-baseweb="tab-list"] {{ justify-content: center; flex-direction: row-reverse; gap: 15px; }}
     
     .dl-link {{
         display: block; width: 100%; padding: 15px; margin: 10px 0;
@@ -138,47 +119,10 @@ st.markdown(f"""
     }}
     .savefrom-btn {{ background: linear-gradient(135deg, #10b981, #059669); }}
     .cobalt-btn {{ background: linear-gradient(135deg, #3b82f6, #2563eb); }}
-
-    .center-logo {{ display: block; margin-left: auto; margin-right: auto; width: 130px; height: auto; }}
-    #MainMenu, footer, header {{visibility: hidden;}}
-    .stTabs [data-baseweb="tab-list"] {{ justify-content: center; flex-direction: row-reverse; gap: 15px; }}
     </style>
 """, unsafe_allow_html=True)
 
-# --- 5. إدارة الملفات ---
-DB_FILE = "zain_library.json"
-if 'videos' not in st.session_state:
-    if os.path.exists(DB_FILE):
-        try: st.session_state.videos = json.load(open(DB_FILE, "r", encoding="utf-8"))
-        except: st.session_state.videos = []
-    else: st.session_state.videos = []
-
-def save_to_disk():
-    with open(DB_FILE, "w", encoding="utf-8") as f:
-        json.dump(st.session_state.videos, f, ensure_ascii=False, indent=4)
-
-def fix_youtube_url(url):
-    if not url: return ""
-    u = url.strip()
-    if "youtube.com/shorts/" in u:
-        video_id = u.split("shorts/")[-1].split("?")[0]
-        u = f"https://www.youtube.com/watch?v={video_id}"
-    elif "youtu.be/" in u:
-        video_id = u.split("youtu.be/")[-1].split("?")[0]
-        u = f"https://www.youtube.com/watch?v={video_id}"
-    return u
-
-def get_youtube_title(url):
-    try:
-        clean_url = fix_youtube_url(url)
-        oembed_url = f"https://www.youtube.com/oembed?url={clean_url}&format=json"
-        response = requests.get(oembed_url, timeout=5)
-        if response.status_code == 200:
-            return response.json().get('title')
-    except: pass
-    return None
-
-# --- 6. الهيدر وتبديل اللوغو ---
+# --- 5. منطق الصور ---
 @st.cache_data
 def get_img_as_base64(file):
     try:
@@ -204,7 +148,40 @@ if logo_to_show:
         </div>
     """, unsafe_allow_html=True)
 else:
-    st.markdown(f"<h1 style='text-align:center; color: {text_color};'>مكتبة زين</h1>", unsafe_allow_html=True)
+    st.markdown(f"<h1 style='text-align:center;'>مكتبة زين</h1>", unsafe_allow_html=True)
+
+# --- 6. إدارة البيانات ---
+DB_FILE = "zain_library.json"
+if 'videos' not in st.session_state:
+    if os.path.exists(DB_FILE):
+        try: st.session_state.videos = json.load(open(DB_FILE, "r", encoding="utf-8"))
+        except: st.session_state.videos = []
+    else: st.session_state.videos = []
+
+def save_to_disk():
+    with open(DB_FILE, "w", encoding="utf-8") as f:
+        json.dump(st.session_state.videos, f, ensure_ascii=False, indent=4)
+
+def fix_youtube_url(url):
+    if not url: return ""
+    u = url.strip()
+    if "shorts/" in u:
+        v_id = u.split("shorts/")[-1].split("?")[0]
+        return f"https://www.youtube.com/watch?v={v_id}"
+    elif "youtu.be/" in u:
+        v_id = u.split("youtu.be/")[-1].split("?")[0]
+        return f"https://www.youtube.com/watch?v={v_id}"
+    return u
+
+def get_youtube_title(url):
+    try:
+        clean_url = fix_youtube_url(url)
+        oembed_url = f"https://www.youtube.com/oembed?url={clean_url}&format=json"
+        response = requests.get(oembed_url, timeout=3)
+        if response.status_code == 200:
+            return response.json().get('title')
+    except: pass
+    return None
 
 # --- 7. الواجهة ---
 with st.expander("➕ إضافة فيديو جديد", expanded=False):
@@ -224,8 +201,10 @@ with st.expander("➕ إضافة فيديو جديد", expanded=False):
     
     if st.button("حفظ ✅"):
         if title_in and url_in:
-            final_url = fix_youtube_url(url_in)
-            st.session_state.videos.append({"title": title_in, "path": final_url, "category": cat_in, "date": time.strftime("%Y-%m-%d")})
+            st.session_state.videos.append({
+                "title": title_in, "path": fix_youtube_url(url_in), 
+                "category": cat_in, "date": time.strftime("%Y-%m-%d")
+            })
             save_to_disk()
             if 'temp_title' in st.session_state: del st.session_state.temp_title
             st.rerun()
@@ -234,37 +213,61 @@ st.markdown("---")
 categories = ["الكل", "دراسة", "ديني", "تصميم", "ترفيه", "أخرى"]
 tabs = st.tabs(categories)
 
-def show_expander_card(item, idx, cat_name):
-    unique_key = f"{cat_name}_{idx}"
-    label = f"🎥 {item['title']}"
-    
-    with st.expander(label):
-        if "youtube.com" in item['path'] or "youtu.be" in item['path']:
-            st.video(item['path'])
-        else: st.info(f"رابط خارجي: {item['path']}")
+# --- 8. نظام الصفحات (السرعة القصوى) ---
+VIDEOS_PER_PAGE = 10 # عدد الفيديوهات في كل صفحة
 
-        st.markdown("---")
-        st.write("##### 1️⃣ نسخ الرابط:")
-        st_copy_to_clipboard(item['path'], "📋 نسخ", key=f"copy_{unique_key}")
-        
-        st.write("##### 2️⃣ التحميل:")
-        c1, c2 = st.columns(2)
-        with c1:
-            st.markdown(f'<a href="https://en.savefrom.net/" target="_blank" class="dl-link savefrom-btn">🟢 SaveFrom</a>', unsafe_allow_html=True)
-        with c2:
-            st.markdown(f'<a href="https://cobalt.tools" target="_blank" class="dl-link cobalt-btn">🔵 Cobalt (شورتس)</a>', unsafe_allow_html=True)
-        
-        st.caption(f"📅 تاريخ الإضافة: {item['date']}")
-
-        st.markdown("---")
-        if st.button("حذف 🗑️", key=f"del_{unique_key}"):
-            st.session_state.videos.remove(item)
-            save_to_disk()
-            st.rerun()
+if 'page_num' not in st.session_state:
+    st.session_state.page_num = 0
 
 for i, cat in enumerate(categories):
     with tabs[i]:
-        items = [v for v in reversed(st.session_state.videos) if cat == "الكل" or v['category'] == cat]
-        if not items: st.info("لا يوجد محتوى")
-        for idx, vid in enumerate(items):
-            show_expander_card(vid, idx, cat)
+        # تصفية الفيديوهات حسب التصنيف
+        all_items = [v for v in reversed(st.session_state.videos) if cat == "الكل" or v['category'] == cat]
+        
+        if not all_items:
+            st.info("لا يوجد محتوى")
+        else:
+            # حساب الصفحات
+            total_pages = max(1, (len(all_items) + VIDEOS_PER_PAGE - 1) // VIDEOS_PER_PAGE)
+            current_page = st.session_state.page_num
+            
+            # ضمان أن الصفحة الحالية صالحة
+            if current_page >= total_pages: current_page = total_pages - 1
+            if current_page < 0: current_page = 0
+            
+            start_idx = current_page * VIDEOS_PER_PAGE
+            end_idx = start_idx + VIDEOS_PER_PAGE
+            page_items = all_items[start_idx:end_idx]
+            
+            # عرض الفيديوهات (للصفحة الحالية فقط)
+            for idx, vid in enumerate(page_items):
+                unique_key = f"{cat}_{start_idx + idx}"
+                with st.expander(f"🎥 {vid['title']}"):
+                    st.video(vid['path'])
+                    st_copy_to_clipboard(vid['path'], "📋 نسخ الرابط", key=f"cp_{unique_key}")
+                    c1, c2 = st.columns(2)
+                    c1.markdown(f'<a href="https://en.savefrom.net/" target="_blank" class="dl-link savefrom-btn">🟢 SaveFrom</a>', unsafe_allow_html=True)
+                    c2.markdown(f'<a href="https://cobalt.tools" target="_blank" class="dl-link cobalt-btn">🔵 Cobalt</a>', unsafe_allow_html=True)
+                    if st.button("حذف 🗑️", key=f"del_{unique_key}"):
+                        st.session_state.videos.remove(vid)
+                        save_to_disk()
+                        st.rerun()
+            
+            st.markdown("---")
+            # أزرار التنقل بين الصفحات
+            col_prev, col_info, col_next = st.columns([1, 2, 1])
+            
+            with col_prev:
+                if current_page > 0:
+                    if st.button("السابق ⬅️", key=f"prev_{cat}"):
+                        st.session_state.page_num -= 1
+                        st.rerun()
+            
+            with col_info:
+                st.markdown(f"<div style='text-align: center; padding-top: 10px;'>صفحة {current_page + 1} من {total_pages}</div>", unsafe_allow_html=True)
+            
+            with col_next:
+                if current_page < total_pages - 1:
+                    if st.button("التالي ➡️", key=f"next_{cat}"):
+                        st.session_state.page_num += 1
+                        st.rerun()
