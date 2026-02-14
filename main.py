@@ -45,23 +45,23 @@ col_mode, _ = st.columns([0.1, 0.9])
 with col_mode:
     st.button("🌓", on_click=toggle_theme, help="تبديل الوضع")
 
-# إعداد المتغيرات (ألوان صلبة وواضحة لحل مشكلة البياض)
+# إعداد المتغيرات 
 if st.session_state.theme_mode == 'dark':
     vars = {
         "bg": "#0f172a", "text": "#ffffff",
         "grad": "radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%)",
         "inp_bg": "#1e293b", "inp_text": "#ffffff", "head": "rgba(30, 41, 59, 0.7)",
-        "btn_bg": "#0ea5e9", "btn_text": "#ffffff" # أزرق صلب للأزرار
+        "btn_bg": "#0ea5e9", "btn_text": "#ffffff"
     }
 else:
     vars = {
         "bg": "#f8fafc", "text": "#1e293b",
         "grad": "radial-gradient(circle at 50% 0%, #e2e8f0 0%, #f8fafc 70%)",
         "inp_bg": "#ffffff", "inp_text": "#1e293b", "head": "rgba(226, 232, 240, 0.8)",
-        "btn_bg": "#3b82f6", "btn_text": "#ffffff" # أزرق صلب للأزرار
+        "btn_bg": "#3b82f6", "btn_text": "#ffffff"
     }
 
-# --- 4. CSS المصحح (لإجبار الأزرار والحقول على الظهور) ---
+# --- 4. CSS ---
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap');
@@ -73,16 +73,13 @@ st.markdown(f"""
         color: {vars['text']} !important;
     }}
 
-    /* تطبيق الخطوط */
     h1, h2, h3, h4, h5, h6, p, label, .stMarkdown p {{
         font-family: 'Almarai', sans-serif !important;
         color: {vars['text']} !important;
     }}
     
-    /* إخفاء سهم البطاقة */
     [data-testid="stExpanderToggleIcon"], svg {{ display: none !important; visibility: hidden !important; }}
 
-    /* تنسيق الحقول (إجبار ألوان صلبة) */
     .stTextInput input, div[data-baseweb="select"] > div {{
         background-color: {vars['inp_bg']} !important;
         color: {vars['inp_text']} !important;
@@ -92,7 +89,6 @@ st.markdown(f"""
         font-family: 'Almarai', sans-serif !important;
     }}
 
-    /* تنسيق الأزرار (إجبار لون أزرق ونص أبيض) */
     .stButton button {{
         background-color: {vars['btn_bg']} !important;
         color: {vars['btn_text']} !important;
@@ -129,11 +125,13 @@ st.markdown(f"""
     .stTabs [data-baseweb="tab-list"] {{ justify-content: center; flex-direction: row-reverse; gap: 15px; }}
     
     .dl-link {{
-        display: block; width: 100%; padding: 15px; margin: 10px 0;
-        text-align: center; border-radius: 10px; text-decoration: none !important;
+        display: block; width: 100%; padding: 12px 5px; margin: 5px 0;
+        text-align: center; border-radius: 8px; text-decoration: none !important;
         font-weight: 700; color: white !important; border: 1px solid rgba(255,255,255,0.2);
+        font-size: 0.95rem;
     }}
     .savefrom-btn {{ background: linear-gradient(135deg, #10b981, #059669); }}
+    .audio-btn {{ background: linear-gradient(135deg, #f43f5e, #e11d48); }}
     .cobalt-btn {{ background: linear-gradient(135deg, #3b82f6, #2563eb); }}
     </style>
 """, unsafe_allow_html=True)
@@ -240,13 +238,19 @@ for i, cat in enumerate(categories):
                     st.video(vid['path'])
                     st_copy_to_clipboard(vid['path'], "📋 نسخ الرابط", key=f"cp_{unique_key}")
                     
-                    c1, c2 = st.columns(2)
+                    # 3 أزرار لتغطية كل الاحتمالات
+                    c1, c2, c3 = st.columns(3)
                     
-                    # 🚀 حيلة الـ SSYOUTUBE: أضمن طريقة للتحميل وتتجاوز مشكلة 403
+                    # 1. زر تحميل الفيديو (SS)
                     ss_url = vid['path'].replace("youtube.com", "ssyoutube.com")
+                    c1.markdown(f'<a href="{ss_url}" target="_blank" class="dl-link savefrom-btn">🟢 فيديو (SS)</a>', unsafe_allow_html=True)
                     
-                    c1.markdown(f'<a href="{ss_url}" target="_blank" class="dl-link savefrom-btn">🟢 تحميل مباشر (SS)</a>', unsafe_allow_html=True)
-                    c2.markdown(f'<a href="https://cobalt.tools" target="_blank" class="dl-link cobalt-btn">🔵 Cobalt (شورتس)</a>', unsafe_allow_html=True)
+                    # 2. زر تحميل الصوت (موقع مخصص للـ MP3)
+                    audio_url = f"https://dirpy.com/studio?url={vid['path']}"
+                    c2.markdown(f'<a href="{audio_url}" target="_blank" class="dl-link audio-btn">🎵 صوت (MP3)</a>', unsafe_allow_html=True)
+                    
+                    # 3. زر كوبات (المحترف الخالي من الإعلانات)
+                    c3.markdown(f'<a href="https://cobalt.tools" target="_blank" class="dl-link cobalt-btn">💎 أداة Cobalt</a>', unsafe_allow_html=True)
                     
                     if st.button("حذف 🗑️", key=f"del_{unique_key}"):
                         st.session_state.videos.remove(vid)
