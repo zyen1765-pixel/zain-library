@@ -14,69 +14,106 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- 2. إدارة الوضع (ليلي/نهاري) ---
+# --- 2. دوال مساعدة ---
+def toggle_theme():
+    st.session_state.theme_mode = 'light' if st.session_state.theme_mode == 'dark' else 'dark'
+
+@st.cache_data
+def get_img_as_base64(file):
+    try:
+        with open(file, "rb") as f: data = f.read()
+        return base64.b64encode(data).decode()
+    except: return None
+
+@st.cache_data
+def get_active_logo(mode):
+    if mode == 'dark':
+        candidates = ["zain_logo.webp", "zain_logo_new.png", "zain_logo.png", "zain_logo.jpg"]
+    else:
+        candidates = ["zain_logo_dark.webp", "zain_logo_dark.jpg", "zain_logo_dark.png"]
+    
+    for path in candidates:
+        if os.path.exists(path):
+            return path
+    return None
+
+# --- 3. إدارة الوضع ---
 if 'theme_mode' not in st.session_state:
     st.session_state.theme_mode = 'dark'
 
-# زر التبديل في الأعلى
-col_mode, col_empty = st.columns([0.1, 0.9])
+col_mode, _ = st.columns([0.1, 0.9])
 with col_mode:
-    if st.button("🌓"):
-        st.session_state.theme_mode = 'light' if st.session_state.theme_mode == 'dark' else 'dark'
-        st.rerun()
+    st.button("🌓", on_click=toggle_theme, help="تبديل الوضع")
 
-# إعدادات الألوان واللوغو 
+# إعداد المتغيرات (ألوان صلبة وواضحة لحل مشكلة البياض)
 if st.session_state.theme_mode == 'dark':
-    bg_color, text_color = "#0f172a", "#ffffff"
-    gradient = "radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%)"
-    input_bg, header_bg = "rgba(255, 255, 255, 0.05)", "rgba(30, 41, 59, 0.7)"
-    possible_logos = ["zain_logo.webp", "zain_logo_new.png", "zain_logo.png", "zain_logo.jpg"]
+    vars = {
+        "bg": "#0f172a", "text": "#ffffff",
+        "grad": "radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%)",
+        "inp_bg": "#1e293b", "inp_text": "#ffffff", "head": "rgba(30, 41, 59, 0.7)",
+        "btn_bg": "#0ea5e9", "btn_text": "#ffffff" # أزرق صلب للأزرار
+    }
 else:
-    bg_color, text_color = "#f8fafc", "#1e293b"
-    gradient = "radial-gradient(circle at 50% 0%, #e2e8f0 0%, #f8fafc 70%)"
-    input_bg, header_bg = "rgba(0, 0, 0, 0.05)", "rgba(226, 232, 240, 0.8)"
-    possible_logos = ["zain_logo_dark.webp", "zain_logo_dark.jpg", "zain_logo_dark.png"]
+    vars = {
+        "bg": "#f8fafc", "text": "#1e293b",
+        "grad": "radial-gradient(circle at 50% 0%, #e2e8f0 0%, #f8fafc 70%)",
+        "inp_bg": "#ffffff", "inp_text": "#1e293b", "head": "rgba(226, 232, 240, 0.8)",
+        "btn_bg": "#3b82f6", "btn_text": "#ffffff" # أزرق صلب للأزرار
+    }
 
-# --- 3. التصميم (CSS) ---
+# --- 4. CSS المصحح (لإجبار الأزرار والحقول على الظهور) ---
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&display=swap');
 
     html, body, .stApp {{
-        background-color: {bg_color} !important;
-        background-image: {gradient};
+        background-color: {vars['bg']} !important;
+        background-image: {vars['grad']};
         background-attachment: fixed;
-        color: {text_color} !important;
+        color: {vars['text']} !important;
     }}
 
-    h1, h2, h3, h4, h5, h6, p, label, button, .stMarkdown p, .stButton button, .stTextInput input {{
+    /* تطبيق الخطوط */
+    h1, h2, h3, h4, h5, h6, p, label, .stMarkdown p {{
         font-family: 'Almarai', sans-serif !important;
-        color: {text_color} !important;
+        color: {vars['text']} !important;
     }}
     
+    /* إخفاء سهم البطاقة */
     [data-testid="stExpanderToggleIcon"], svg {{ display: none !important; visibility: hidden !important; }}
 
-    .streamlit-expanderHeader {{
-        background-color: {header_bg} !important;
-        border: none !important;
-        border-radius: 15px !important;
-        padding: 15px 20px !important;
-        margin-bottom: 12px;
-        display: block !important;
+    /* تنسيق الحقول (إجبار ألوان صلبة) */
+    .stTextInput input, div[data-baseweb="select"] > div {{
+        background-color: {vars['inp_bg']} !important;
+        color: {vars['inp_text']} !important;
+        border: 1px solid rgba(128, 128, 128, 0.4) !important;
+        direction: rtl !important; text-align: right !important;
+        -webkit-text-fill-color: {vars['inp_text']} !important;
+        font-family: 'Almarai', sans-serif !important;
     }}
 
+    /* تنسيق الأزرار (إجبار لون أزرق ونص أبيض) */
+    .stButton button {{
+        background-color: {vars['btn_bg']} !important;
+        color: {vars['btn_text']} !important;
+        border: none !important;
+        border-radius: 8px !important;
+        font-family: 'Almarai', sans-serif !important;
+    }}
+    .stButton button p {{
+        color: {vars['btn_text']} !important;
+        font-weight: bold !important;
+    }}
+
+    .streamlit-expanderHeader {{
+        background-color: {vars['head']} !important;
+        border-radius: 15px !important; padding: 15px 20px !important;
+        margin-bottom: 12px; display: block !important; border: none !important;
+    }}
     .streamlit-expanderHeader p {{
         font-size: 1.1rem !important; font-weight: 700 !important;
         margin: 0 !important; text-align: right !important;
         width: 100% !important; direction: rtl !important;
-    }}
-
-    .stTextInput input, div[data-baseweb="select"] > div {{
-        background-color: {input_bg} !important;
-        color: {text_color} !important;
-        border: 1px solid rgba(128, 128, 128, 0.2) !important;
-        direction: rtl !important; text-align: right !important;
-        -webkit-text-fill-color: {text_color} !important;
     }}
 
     @media (min-width: 1000px) {{
@@ -87,7 +124,9 @@ st.markdown(f"""
         .center-logo {{ width: 160px !important; }}
     }}
 
-    .streamlit-expanderContent {{ background-color: transparent !important; border: none !important; padding: 15px 25px !important; text-align: right !important; }}
+    .center-logo {{ display: block; margin-left: auto; margin-right: auto; width: 130px; height: auto; }}
+    #MainMenu, footer, header {{visibility: hidden;}}
+    .stTabs [data-baseweb="tab-list"] {{ justify-content: center; flex-direction: row-reverse; gap: 15px; }}
     
     .dl-link {{
         display: block; width: 100%; padding: 15px; margin: 10px 0;
@@ -96,14 +135,26 @@ st.markdown(f"""
     }}
     .savefrom-btn {{ background: linear-gradient(135deg, #10b981, #059669); }}
     .cobalt-btn {{ background: linear-gradient(135deg, #3b82f6, #2563eb); }}
-
-    .center-logo {{ display: block; margin-left: auto; margin-right: auto; width: 130px; height: auto; }}
-    #MainMenu, footer, header {{visibility: hidden;}}
-    .stTabs [data-baseweb="tab-list"] {{ justify-content: center; flex-direction: row-reverse; gap: 15px; }}
     </style>
 """, unsafe_allow_html=True)
 
-# --- 4. إدارة الملفات ---
+# --- 5. عرض اللوغو ---
+logo_path = get_active_logo(st.session_state.theme_mode)
+if logo_path:
+    img_b64 = get_img_as_base64(logo_path)
+    ext = logo_path.split('.')[-1]
+    mime = "image/webp" if ext == "webp" else f"image/{ext.replace('jpg', 'jpeg')}"
+    st.markdown(f"""
+        <div style="text-align: center; padding-top: 10px;">
+            <img src="data:{mime};base64,{img_b64}" class="center-logo">
+            <h1 style="margin-top: 10px; font-size: 3rem; color: {vars['text']}; text-shadow: 0 0 20px rgba(56, 189, 248, 0.3);">مكتبة زين</h1>
+            <p style="opacity: 0.9; font-size: 1.2rem; margin: 5px 0 20px 0; font-weight: 300;">مساحتك الخاصة للإبداع</p>
+        </div>
+    """, unsafe_allow_html=True)
+else:
+    st.markdown(f"<h1 style='text-align:center;'>مكتبة زين</h1>", unsafe_allow_html=True)
+
+# --- 6. إدارة البيانات ---
 DB_FILE = "zain_library.json"
 if 'videos' not in st.session_state:
     if os.path.exists(DB_FILE):
@@ -116,49 +167,22 @@ def save_to_disk():
         json.dump(st.session_state.videos, f, ensure_ascii=False, indent=4)
 
 def fix_youtube_url(url):
-    if not url: return ""
     u = url.strip()
-    if "youtube.com/shorts/" in u: return f"https://www.youtube.com/watch?v={u.split('shorts/')[-1].split('?')[0]}"
-    elif "youtu.be/" in u: return f"https://www.youtube.com/watch?v={u.split('youtu.be/')[-1].split('?')[0]}"
+    if "shorts/" in u:
+        return f"https://www.youtube.com/watch?v={u.split('shorts/')[-1].split('?')[0]}"
+    elif "youtu.be/" in u:
+        return f"https://www.youtube.com/watch?v={u.split('youtu.be/')[-1].split('?')[0]}"
     return u
 
 def get_youtube_title(url):
     try:
-        clean_url = fix_youtube_url(url)
-        res = requests.get(f"https://www.youtube.com/oembed?url={clean_url}&format=json", timeout=3)
+        clean = fix_youtube_url(url)
+        res = requests.get(f"https://www.youtube.com/oembed?url={clean}&format=json", timeout=3)
         if res.status_code == 200: return res.json().get('title')
     except: pass
     return None
 
-# --- 5. الهيدر ---
-@st.cache_data
-def get_img_as_base64(file):
-    try:
-        with open(file, "rb") as f: data = f.read()
-        return base64.b64encode(data).decode()
-    except: return None
-
-logo_to_show = None
-for l_path in possible_logos:
-    if os.path.exists(l_path):
-        logo_to_show = l_path
-        break
-
-if logo_to_show:
-    img_b64 = get_img_as_base64(logo_to_show)
-    ext = logo_to_show.split('.')[-1]
-    mime_type = "image/webp" if ext == "webp" else f"image/{ext.replace('jpg', 'jpeg')}"
-    st.markdown(f"""
-        <div style="text-align: center; padding-top: 10px;">
-            <img src="data:{mime_type};base64,{img_b64}" class="center-logo">
-            <h1 style="margin-top: 10px; font-size: 3rem; color: {text_color}; text-shadow: 0 0 20px rgba(56, 189, 248, 0.3);">مكتبة زين</h1>
-            <p style="opacity: 0.9; font-size: 1.2rem; margin: 5px 0 20px 0; font-weight: 300;">مساحتك الخاصة للإبداع</p>
-        </div>
-    """, unsafe_allow_html=True)
-else:
-    st.markdown(f"<h1 style='text-align:center; color: {text_color};'>مكتبة زين</h1>", unsafe_allow_html=True)
-
-# --- 6. الإدخال ---
+# --- 7. الإدخال ---
 with st.expander("➕ إضافة فيديو جديد", expanded=False):
     url_in = st.text_input("رابط الفيديو")
     if st.button("🔍 جلب العنوان"):
@@ -174,7 +198,7 @@ with st.expander("➕ إضافة فيديو جديد", expanded=False):
     with c2: title_in = st.text_input("العنوان", value=dt)
     with c1: cat_in = st.selectbox("التصنيف", ["دراسة", "ديني", "تصميم", "ترفيه", "أخرى"])
     
-    if st.button("حفظ ✅"):
+    if st.button("حفظ الفيديو ✅"):
         if title_in and url_in:
             st.session_state.videos.append({
                 "title": title_in, "path": fix_youtube_url(url_in), 
@@ -188,8 +212,8 @@ st.markdown("---")
 categories = ["الكل", "دراسة", "ديني", "تصميم", "ترفيه", "أخرى"]
 tabs = st.tabs(categories)
 
-# --- 7. نظام الصفحات المسرّع والآمن للروابط ---
-VIDEOS_PER_PAGE = 5
+# --- 8. الصفحات والتحميل ---
+VIDEOS_PER_PAGE = 5 
 
 if 'page_num' not in st.session_state:
     st.session_state.page_num = 0
@@ -202,31 +226,27 @@ for i, cat in enumerate(categories):
             st.info("لا يوجد محتوى")
         else:
             total_pages = max(1, (len(all_items) + VIDEOS_PER_PAGE - 1) // VIDEOS_PER_PAGE)
-            current_page = st.session_state.page_num
-            if current_page >= total_pages: current_page = total_pages - 1
-            if current_page < 0: current_page = 0
+            current_page = min(max(0, st.session_state.page_num), total_pages - 1)
             
-            start_idx = current_page * VIDEOS_PER_PAGE
-            end_idx = start_idx + VIDEOS_PER_PAGE
-            page_items = all_items[start_idx:end_idx]
+            start = current_page * VIDEOS_PER_PAGE
+            end = start + VIDEOS_PER_PAGE
+            page_items = all_items[start:end]
             
             for idx, vid in enumerate(page_items):
-                # 🛠️ الحل الجذري لمشكلة الروابط: إنشاء مفتاح فريد يعتمد على مسار الفيديو
                 safe_path = base64.b64encode(vid['path'].encode()).decode()[:15]
-                unique_key = f"{cat}_{start_idx + idx}_{safe_path}"
+                unique_key = f"{cat}_{start + idx}_{safe_path}"
                 
                 with st.expander(f"🎥 {vid['title']}"):
                     st.video(vid['path'])
-                    
-                    # زر النسخ الآن مستحيل أن يخطئ
                     st_copy_to_clipboard(vid['path'], "📋 نسخ الرابط", key=f"cp_{unique_key}")
                     
                     c1, c2 = st.columns(2)
-                    # 🛠️ تمرير الرابط مباشرة إلى SaveFrom
-                    savefrom_url = f"https://en.savefrom.net/10/?url={vid['path']}"
                     
-                    c1.markdown(f'<a href="{savefrom_url}" target="_blank" class="dl-link savefrom-btn">🟢 SaveFrom</a>', unsafe_allow_html=True)
-                    c2.markdown(f'<a href="https://cobalt.tools" target="_blank" class="dl-link cobalt-btn">🔵 Cobalt</a>', unsafe_allow_html=True)
+                    # 🚀 حيلة الـ SSYOUTUBE: أضمن طريقة للتحميل وتتجاوز مشكلة 403
+                    ss_url = vid['path'].replace("youtube.com", "ssyoutube.com")
+                    
+                    c1.markdown(f'<a href="{ss_url}" target="_blank" class="dl-link savefrom-btn">🟢 تحميل مباشر (SS)</a>', unsafe_allow_html=True)
+                    c2.markdown(f'<a href="https://cobalt.tools" target="_blank" class="dl-link cobalt-btn">🔵 Cobalt (شورتس)</a>', unsafe_allow_html=True)
                     
                     if st.button("حذف 🗑️", key=f"del_{unique_key}"):
                         st.session_state.videos.remove(vid)
@@ -234,15 +254,15 @@ for i, cat in enumerate(categories):
                         st.rerun()
             
             st.markdown("---")
-            col_prev, col_info, col_next = st.columns([1, 2, 1])
-            with col_prev:
+            c_prev, c_info, c_next = st.columns([1, 2, 1])
+            with c_prev:
                 if current_page > 0:
                     if st.button("السابق ⬅️", key=f"prev_{cat}"):
                         st.session_state.page_num -= 1
                         st.rerun()
-            with col_info:
-                st.markdown(f"<div style='text-align: center; padding-top: 10px;'>صفحة {current_page + 1} من {total_pages}</div>", unsafe_allow_html=True)
-            with col_next:
+            with c_info:
+                st.markdown(f"<div style='text-align: center; direction: rtl;'>صفحة {current_page + 1} من {total_pages}</div>", unsafe_allow_html=True)
+            with c_next:
                 if current_page < total_pages - 1:
                     if st.button("التالي ➡️", key=f"next_{cat}"):
                         st.session_state.page_num += 1
