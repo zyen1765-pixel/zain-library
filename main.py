@@ -177,11 +177,12 @@ for i, cat in enumerate(categories):
                     else:
                         c1, c2, c3 = st.columns(3)
                         ss_url = vid['path'].replace("youtube.com", "ssyoutube.com")
-                        yt1s_url = f"https://yt1s.com/en/youtube-to-mp3?q={vid['path']}"
+                        # 🛠️ استخدام موقع SaveMP3 كما طلبت تماماً 🛠️
+                        savemp3_url = f"https://savemp3.app/en/?url={vid['path']}"
                         xbuddy_url = f"https://9xbuddy.com/process?url={vid['path']}"
                         
                         c1.markdown(f'<a href="{ss_url}" target="_blank" class="dl-link savefrom-btn">🟢 فيديو سريع (SS)</a>', unsafe_allow_html=True)
-                        c2.markdown(f'<a href="{yt1s_url}" target="_blank" class="dl-link audio-btn">🎵 صوت (YT1s)</a>', unsafe_allow_html=True)
+                        c2.markdown(f'<a href="{savemp3_url}" target="_blank" class="dl-link audio-btn">🎵 صوت (SaveMP3)</a>', unsafe_allow_html=True)
                         c3.markdown(f'<a href="{xbuddy_url}" target="_blank" class="dl-link y2mate-btn">🚀 بديل شامل (9xBuddy)</a>', unsafe_allow_html=True)
                     
                     if st.button("حذف 🗑️", key=f"del_{unique_key}"):
