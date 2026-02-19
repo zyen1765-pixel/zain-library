@@ -61,6 +61,7 @@ st.markdown(f"""
     #MainMenu, footer, header {{visibility: hidden;}}
     .dl-link {{ display: block; width: 100%; padding: 12px 5px; margin: 5px 0; text-align: center; border-radius: 8px; text-decoration: none !important; font-weight: 700; color: white !important; font-size: 0.95rem; }}
     .savefrom-btn {{ background: linear-gradient(135deg, #10b981, #059669); }}
+    .audio-btn {{ background: linear-gradient(135deg, #f43f5e, #e11d48); }}
     .y2mate-btn {{ background: linear-gradient(135deg, #8b5cf6, #6d28d9); }}
     .cobalt-btn {{ background: linear-gradient(135deg, #3b82f6, #2563eb); }}
     </style>
@@ -105,10 +106,6 @@ def fix_url(url):
     if "youtu.be/" in u: return f"https://www.youtube.com/watch?v={u.split('youtu.be/')[-1].split('?')[0]}"
     return u
 
-def extract_video_id(url):
-    if "watch?v=" in url: return url.split("watch?v=")[-1].split("&")[0]
-    return ""
-
 def get_youtube_title(url):
     try:
         clean = fix_url(url)
@@ -117,11 +114,10 @@ def get_youtube_title(url):
     except: pass
     return None
 
-# --- 5. الإدخال (مع جلب العنوان التلقائي المصلح) ---
+# --- 5. الإدخال ---
 with st.expander("➕ إضافة فيديو جديد", expanded=False):
     url_in = st.text_input("رابط الفيديو (يوتيوب أو إنستغرام)")
     
-    # عودة زر جلب العنوان للحياة
     if st.button("🔍 جلب العنوان"):
         if url_in:
             t = get_youtube_title(url_in)
@@ -176,19 +172,17 @@ for i, cat in enumerate(categories):
                     
                     st_copy_to_clipboard(vid['path'], "📋 نسخ الرابط", key=f"cp_{unique_key}")
                     
-                    # هندسة الأزرار حسب نوع الرابط
                     if is_ig:
-                        # إنستغرام: فقط زر كوبات الصافي والمضمون
                         st.markdown('<a href="https://cobalt.tools" target="_blank" class="dl-link cobalt-btn">💎 أداة Cobalt (لتحميل إنستغرام)</a>', unsafe_allow_html=True)
                     else:
-                        # يوتيوب: زر للفيديو السريع، وزر للمقاطع الطويلة والصوتيات
-                        c1, c2 = st.columns(2)
+                        c1, c2, c3 = st.columns(3)
                         ss_url = vid['path'].replace("youtube.com", "ssyoutube.com")
-                        vid_id = extract_video_id(vid['path'])
-                        y2meta_url = f"https://y2meta.app/youtube/{vid_id}" if vid_id else "https://y2meta.app"
+                        yt1s_url = f"https://yt1s.com/en/youtube-to-mp3?q={vid['path']}"
+                        xbuddy_url = f"https://9xbuddy.com/process?url={vid['path']}"
                         
-                        c1.markdown(f'<a href="{ss_url}" target="_blank" class="dl-link savefrom-btn">🟢 تحميل فيديو (SS)</a>', unsafe_allow_html=True)
-                        c2.markdown(f'<a href="{y2meta_url}" target="_blank" class="dl-link y2mate-btn">🚀 يوتيوب شامل + صوت (Y2Meta)</a>', unsafe_allow_html=True)
+                        c1.markdown(f'<a href="{ss_url}" target="_blank" class="dl-link savefrom-btn">🟢 فيديو سريع (SS)</a>', unsafe_allow_html=True)
+                        c2.markdown(f'<a href="{yt1s_url}" target="_blank" class="dl-link audio-btn">🎵 صوت (YT1s)</a>', unsafe_allow_html=True)
+                        c3.markdown(f'<a href="{xbuddy_url}" target="_blank" class="dl-link y2mate-btn">🚀 بديل شامل (9xBuddy)</a>', unsafe_allow_html=True)
                     
                     if st.button("حذف 🗑️", key=f"del_{unique_key}"):
                         st.session_state.videos.remove(vid)
