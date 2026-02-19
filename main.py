@@ -177,8 +177,10 @@ for i, cat in enumerate(categories):
                     else:
                         c1, c2, c3 = st.columns(3)
                         ss_url = vid['path'].replace("youtube.com", "ssyoutube.com")
-                        # 🛠️ استخدام موقع SaveMP3 كما طلبت تماماً 🛠️
-                        savemp3_url = f"https://savemp3.app/en/?url={vid['path']}"
+                        
+                        # 🛠️ استخدام الرابط الدقيق الذي أرسلته 🛠️
+                        savemp3_url = f"https://ar.savemp3.net/48ir8/youtube-video-to-mp3/?url={vid['path']}"
+                        
                         xbuddy_url = f"https://9xbuddy.com/process?url={vid['path']}"
                         
                         c1.markdown(f'<a href="{ss_url}" target="_blank" class="dl-link savefrom-btn">🟢 فيديو سريع (SS)</a>', unsafe_allow_html=True)
